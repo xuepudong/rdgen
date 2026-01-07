@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RustDesk Custom Client Builder</title>
+    <title>RustDesk 客户端生成器</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Roboto', "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", sans-serif;
             background-color: #000;
             color: #e0e0e0;
             margin: 0;
@@ -224,15 +224,15 @@
       </style>
 </head>
 <body>
-    <h1><i class="fas fa-cogs"></i> RustDesk Custom Client Builder</h1>
+    <h1><i class="fas fa-cogs"></i> RustDesk 客户端生成器</h1>
     <form id="myForm" action="/generator" method="post" enctype="multipart/form-data">
         <div class="save-load-section-container">
             <div class="section">
-                <h2 id="saveLoadTitle">Save/Load Configuration <i class="fas fa-chevron-down"></i></h2>  
-                <div class="save-load-section">  
-                    <button type="button" onclick="saveFormData()">Save Configuration</button>
+                <h2 id="saveLoadTitle">保存/加载配置 <i class="fas fa-chevron-down"></i></h2>
+                <div class="save-load-section">
+                    <button type="button" onclick="saveFormData()">保存配置</button>
                     <input type="file" id="fileInput" style="display:none;" accept=".json">
-                    <button type="button" onclick="loadFormData()">Load Configuration</button>
+                    <button type="button" onclick="loadFormData()">加载配置</button>
                 </div>
             </div>
         </div>
@@ -244,7 +244,7 @@
             </ul>
         {% endif %}
         <div class="platform">
-            <h2><i class="fas fa-desktop"></i> Select Platform</h2>
+            <h2><i class="fas fa-desktop"></i> 选择平台</h2>
                 <div class="platform-icons">
                     <span class="fa-stack fa-lg">
                         <i class="fab fa-windows  fa-stack-2x platform-icon active" data-platform="windows"></i>
@@ -259,129 +259,152 @@
                     <i class="fab fa-apple platform-icon" data-platform="macos"></i>
                 </div>
                 <select name="platform" id="id_platform">
-                    <option value="windows" selected>Windows 64Bit</option>
-                    <option value="windows-x86">Windows 32Bit</option>
+                    <option value="windows" selected>Windows 64位</option>
+                    <option value="windows-x86">Windows 32位</option>
                     <option value="linux">Linux</option>
                     <option value="android">Android</option>
                     <option value="macos">macOS</option>
                 </select>
-                <label for="{{ form.version.id_for_label }}">Rustdesk Version:</label>
+                <label for="{{ form.version.id_for_label }}">版本号：</label>
                 {{ form.version }}
                 {% if form.version.help_text %}
                     <span class="help-text">{{ form.version.help_text }}</span>
                 {% endif %}
                 <div class="help-text">{{ form.version.help_text }}</div>
-                <label for="{{ form.delayFix.id_for_label }}">{{ form.delayFix }} Fix connection delay when using third-party API</label>
+                <label for="{{ form.delayFix.id_for_label }}">{{ form.delayFix }} 修复使用第三方 API 时的连接延迟</label>
             </div>
         </div>
         <div class="container">   
             <div class="section">
-                <h2><i class="fas fa-sliders-h"></i> General</h2>
-                    <label for="{{ form.exename.id_for_label }}">Name of the configuration (no spaces or special characters, English characters only):</label>
+                <h2><i class="fas fa-sliders-h"></i> 通用设置</h2>
+                    <label for="{{ form.exename.id_for_label }}">文件名称（仅英文字符，无空格和特殊符号）：</label>
                     {{ form.exename }}<span id="filenameError" class="error"></span><br><br>
-                    <label for="{{ form.appname.id_for_label }}">Custom Application Name (leave blank to use default):</label>
+                    <label for="{{ form.appname.id_for_label }}">自定义应用名称（留空使用默认）：</label>
                     {{ form.appname }}<br><br>
-                    <label for="{{ form.direction.id_for_label }}">Connection Type:</label>
+                    <label for="{{ form.direction.id_for_label }}">连接类型：</label>
                     {{ form.direction }}<br><br>
-                    <label for="{{ form.installation.id_for_label }}">Disable Installation:</label>
+                    <label for="{{ form.installation.id_for_label }}">禁用安装：</label>
                     {{ form.installation }}<br><br>
-                    <label for="{{ form.settings.id_for_label }}">Disable Settings:</label>
+                    <label for="{{ form.settings.id_for_label }}">禁用设置：</label>
                     {{ form.settings }}<br><br>
-                    <label for="{{ form.androidappid.id_for_label }}">Custom Android App ID (replaces 'com.carriez.flutter_hbb', leave blank to use default):</label>
+                    <label for="{{ form.androidappid.id_for_label }}">自定义 Android 应用 ID（替换 'com.carriez.flutter_hbb'，留空使用默认）：</label>
                     {{ form.androidappid }}<br><br>
             </div>
 
             <div class="section">
-                <h2><i class="fas fa-server"></i> Custom Server</h2>
-                    <label for="{{ form.serverIP.id_for_label }}">Host:</label>
+                <h2><i class="fas fa-server"></i> 自定义服务器</h2>
+                    <label for="{{ form.serverIP.id_for_label }}">服务器地址 (Host)：</label>
                     {{ form.serverIP }}<br><br>
-                    <label for="{{ form.key.id_for_label }}">Key:</label>
+                    <label for="{{ form.key.id_for_label }}">密钥 (Key)：</label>
                     {{ form.key }}<br><br>
-                    <label for="{{ form.apiServer.id_for_label }}">API:</label>
+                    <label for="{{ form.apiServer.id_for_label }}">API 服务器：</label>
                     {{ form.apiServer }}<br><br>
-                    <label for="{{ form.urlLink.id_for_label }}">Custom URL for links (replaces https://rustdesk.com):</label>
+                    <label for="{{ form.urlLink.id_for_label }}">自定义网站链接（替换 https://rustdesk.com）：</label>
                     {{ form.urlLink }}<br><br>
-                    <label for="{{ form.downloadLink.id_for_label }}">Custom URL for downloading updates (replaces https://rustdesk.com/download):</label>
+                    <label for="{{ form.downloadLink.id_for_label }}">自定义下载链接（替换 https://rustdesk.com/download）：</label>
                     {{ form.downloadLink }}<br><br>
-                    <label for="{{ form.compname.id_for_label }}">Company name for copyright (replaces Purslane Ltd):</label>
+                    <label for="{{ form.compname.id_for_label }}">版权公司名（替换 Purslane Ltd）：</label>
                     {{ form.compname }}<br><br>
             </div>
         </div>
         <div class="container">
             <div class="section">
-                <h2><i class="fas fa-shield-alt"></i> Security</h2>
-                    <label for="{{ form.passApproveMode.id_for_label }}">Password Approve mode:</label>
+                <h2><i class="fas fa-shield-alt"></i> 安全设置</h2>
+                    <label for="{{ form.passApproveMode.id_for_label }}">验证方式：</label>
                     {{ form.passApproveMode }}<br><br>
-                    <div id="passwordRequirement" class="password-requirement">To use the hide connection window feature, please set a permanent password.</div>
-                    <label for="{{ form.permanentPassword.id_for_label }}">Set Permanent Password:</label>
-                    {{ form.permanentPassword }} *The password is used as default, but can be changed by the client<br><br>
+                    <div id="passwordRequirement" class="password-requirement">使用隐藏连接窗口功能时，请设置永久密码。</div>
+                    <label for="{{ form.permanentPassword.id_for_label }}">设置永久密码：</label>
+                    {{ form.permanentPassword }} *密码用作默认密码，但客户端可以更改<br><br>
                     
                     
-                    <label for="{{ form.denyLan.id_for_label }}">{{ form.denyLan }} Deny LAN discovery</label><br>
-                    
-                    <label for="{{ form.enableDirectIP.id_for_label }}">{{ form.enableDirectIP }} Enable direct IP access</label><br>
-                    
-                    <label for="{{ form.autoClose.id_for_label }}">{{ form.autoClose }} Automatically close incoming sessions on user inactivity</label><br>
+                    <label for="{{ form.denyLan.id_for_label }}">{{ form.denyLan }} 禁止局域网内设备发现</label><br>
 
-                    <label for="{{ form.hidecm.id_for_label }}">{{ form.hidecm }} Allow hiding the connection window from remote screen.</label><br>
+                    <label for="{{ form.enableDirectIP.id_for_label }}">{{ form.enableDirectIP }} 启用直连 IP 连接</label><br>
+
+                    <label for="{{ form.autoClose.id_for_label }}">{{ form.autoClose }} 无操作时自动关闭会话</label><br>
+
+                    <label for="{{ form.hidecm.id_for_label }}">{{ form.hidecm }} 允许从远程屏幕隐藏连接窗口</label><br>
             </div>
         
             <div class="section">
-                <h2><i class="fas fa-paint-brush"></i> Visual</h2>
+                <h2><i class="fas fa-paint-brush"></i> 视觉定制</h2>
                     {{ form.iconbase64.as_hidden }}
                     {{ form.logobase64.as_hidden }}
-                    <label for="{{ form.iconfile.id_for_label }}">Custom App Icon (in .png format)</label>
+                    <label for="{{ form.iconfile.id_for_label }}">自定义应用图标（PNG 格式）</label>
                     {{ form.iconfile }}<br><br>
                     <!-- <input type="file" name="iconfile" id="iconfile" accept="image/png"> -->
                     <div id="icon-preview"></div><br><br>
-                    <label for="{{ form.logofile.id_for_label }}">Custom App Logo (in .png format)</label>
+                    <label for="{{ form.logofile.id_for_label }}">自定义品牌标识（PNG 格式）</label>
                     {{ form.logofile }}<br><br>
                     <!-- <input type="file" name="logofile" id="logofile" accept="image/png"> -->
                     <div id="logo-preview"></div><br><br>
-                    <label for="{{ form.theme.id_for_label }}">Theme:</label>
-                    {{ form.theme }} {{ form.themeDorO }} *Default sets the theme but allows the client to change it, Override sets the theme permanently.<br><br>
+                    <label for="{{ form.theme.id_for_label }}">主题：</label>
+                    {{ form.theme }} {{ form.themeDorO }} *默认设置主题但允许客户端更改，覆盖则永久设置主题。<br><br>
             </div>
         </div>
         <div class="container">
             <div class="section">
-                <h2><i class="fas fa-lock"></i> Permissions</h2>
-                    The following Permissions can be set as default (the user can change the settings) or override (the settings cannot be changed).<br>
+                <h2><i class="fas fa-lock"></i> 权限控制</h2>
+                    以下权限可以设置为默认（用户可以更改设置）或覆盖（设置无法更改）。<br>
                     {{ form.permissionsDorO }}
-                    <label for="{{ form.permissionsType.id_for_label }}">Permission type:</label>
+                    <label for="{{ form.permissionsType.id_for_label }}">权限预设：</label>
                     {{ form.permissionsType }}<br><br>
                     <div class="checkbox-group">
-                        <label for="{{ form.enableKeyboard.id_for_label }}">{{ form.enableKeyboard }} Enable keyboard/mouse</label>
-                        <label for="{{ form.enableClipboard.id_for_label }}">{{ form.enableClipboard }} Enable clipboard</label>
-                        <label for="{{ form.enableFileTransfer.id_for_label }}">{{ form.enableFileTransfer }} Enable file transfer</label>
-                        <label for="{{ form.enableAudio.id_for_label }}">{{ form.enableAudio }} Enable audio</label>
-                        <label for="{{ form.enableTCP.id_for_label }}">{{ form.enableTCP }} Enable TCP tunneling</label>
-                        <label for="{{ form.enableRemoteRestart.id_for_label }}">{{ form.enableRemoteRestart }} Enable remote restart</label>
-                        <label for="{{ form.enableRecording.id_for_label }}">{{ form.enableRecording }} Enable recording session</label>
-                        <label for="{{ form.enableBlockingInput.id_for_label }}">{{ form.enableBlockingInput }} Enable blocking user input</label>
-                        <label for="{{ form.enableRemoteModi.id_for_label }}">{{ form.enableRemoteModi }} Enable remote configuration modification</label>
-                        <label for="{{ form.enablePrinter.id_for_label }}">{{ form.enablePrinter }} Enable remote printer</label>
-                        <label for="{{ form.enableCamera.id_for_label }}">{{ form.enableCamera }} Enable remote camera</label>
-                        <label for="{{ form.enableTerminal.id_for_label }}">{{ form.enableTerminal }} Enable remote terminal</label>
+                        <label for="{{ form.enableKeyboard.id_for_label }}">{{ form.enableKeyboard }} 启用键盘鼠标控制</label>
+                        <label for="{{ form.enableClipboard.id_for_label }}">{{ form.enableClipboard }} 启用剪贴板同步</label>
+                        <label for="{{ form.enableFileTransfer.id_for_label }}">{{ form.enableFileTransfer }} 启用文件传输</label>
+                        <label for="{{ form.enableAudio.id_for_label }}">{{ form.enableAudio }} 启用音频捕获</label>
+                        <label for="{{ form.enableTCP.id_for_label }}">{{ form.enableTCP }} 启用 TCP 隧道</label>
+                        <label for="{{ form.enableRemoteRestart.id_for_label }}">{{ form.enableRemoteRestart }} 启用远程重启</label>
+                        <label for="{{ form.enableRecording.id_for_label }}">{{ form.enableRecording }} 启用会话录制</label>
+                        <label for="{{ form.enableBlockingInput.id_for_label }}">{{ form.enableBlockingInput }} 启用阻止输入</label>
+                        <label for="{{ form.enableRemoteModi.id_for_label }}">{{ form.enableRemoteModi }} 启用远程修改配置</label>
+                        <label for="{{ form.enablePrinter.id_for_label }}">{{ form.enablePrinter }} 启用远程打印</label>
+                        <label for="{{ form.enableCamera.id_for_label }}">{{ form.enableCamera }} 启用摄像头访问</label>
+                        <label for="{{ form.enableTerminal.id_for_label }}">{{ form.enableTerminal }} 启用终端访问</label>
                     </div><br>
-                <h2><i class="fas fa-code"></i> Code Changes</h2>
-                    <label for="{{ form.cycleMonitor.id_for_label }}">{{ form.cycleMonitor }} Add a button to cycle through available monitors to the minimized toolbar.</label><br>
-                    <label for="{{ form.xOffline.id_for_label }}">{{ form.xOffline }} Display an X for offline devices in the addressbook.</label><br>
-                    <label for="{{ form.removeNewVersionNotif.id_for_label }}">{{ form.removeNewVersionNotif }} Remove notification for new versions.</label><br>
+                <h2><i class="fas fa-code"></i> 附加功能</h2>
+                    <div class="checkbox-group">
+                        <label for="{{ form.cycleMonitor.id_for_label }}">{{ form.cycleMonitor }} 会话顶部添加显示器切换按钮</label>
+                        <label for="{{ form.xOffline.id_for_label }}">{{ form.xOffline }} 在地址簿添加离线标记</label>
+                        <label for="{{ form.removeNewVersionNotif.id_for_label }}">{{ form.removeNewVersionNotif }} 移除官方新版本通知</label>
+                        <label for="{{ form.hidePassword.id_for_label }}">{{ form.hidePassword }} 移除密码显示框</label>
+                        <label for="{{ form.hideMenuBar.id_for_label }}">{{ form.hideMenuBar }} 移除设置菜单</label>
+                        <label for="{{ form.removeTopNotice.id_for_label }}">{{ form.removeTopNotice }} 移除预设密码警告</label>
+                        <label for="{{ form.hideQuit.id_for_label }}">{{ form.hideQuit }} 移除退出按钮</label>
+                        <label for="{{ form.addcopy.id_for_label }}">{{ form.addcopy }} 添加复制按钮</label>
+                        <label for="{{ form.applyprivacy.id_for_label }}">{{ form.applyprivacy }} 禁止退出隐私模式</label>
+                        <label for="{{ form.hide_chat_voice.id_for_label }}">{{ form.hide_chat_voice }} 移除会话工具栏聊天功能</label>
+                        <label for="{{ form.supercm.id_for_label }}">{{ form.supercm }} 无条件隐藏连接管理器</label>
+                        <label for="{{ form.passpolicy.id_for_label }}">{{ form.passpolicy }} 更改密码策略</label>
+                        <label for="{{ form.no_uninstall.id_for_label }}">{{ form.no_uninstall }} 移除卸载功能</label>
+                        <label for="{{ form.disable_install.id_for_label }}">{{ form.disable_install }} 制作便携版</label>
+                        <label for="{{ form.hideSecuritySettings.id_for_label }}">{{ form.hideSecuritySettings }} 隐藏安全设置</label>
+                        <label for="{{ form.hideNetworkSettings.id_for_label }}">{{ form.hideNetworkSettings }} 隐藏网络设置</label>
+                        <label for="{{ form.hideServerSettings.id_for_label }}">{{ form.hideServerSettings }} 隐藏服务器设置</label>
+                        <label for="{{ form.hideRemotePrinterSettings.id_for_label }}">{{ form.hideRemotePrinterSettings }} 隐藏远程打印设置</label>
+                        <label for="{{ form.hideTray.id_for_label }}">{{ form.hideTray }} 隐藏系统托盘图标</label>
+                        <label for="{{ form.allowD3dRender.id_for_label }}">{{ form.allowD3dRender }} 允许使用 Direct3D 渲染</label>
+                        <label for="{{ form.allowHostnameAsId.id_for_label }}">{{ form.allowHostnameAsId }} 允许使用主机名作为 ID</label>
+                        <label for="{{ form.allowNumericOneTimePassword.id_for_label }}">{{ form.allowNumericOneTimePassword }} 允许使用纯数字一次性密码</label>
+                        <label for="{{ form.enableAbr.id_for_label }}">{{ form.enableAbr }} 启用自适应比特率</label>
+                        <label for="{{ form.viewOnly.id_for_label }}">{{ form.viewOnly }} 仅查看模式</label>
+                    </div><br>
             </div>
 
             <div class="section">
-                <h2><i class="fas fa-cog"></i> Other</h2>
-                    <label for="{{ form.removeWallpaper.id_for_label }}">{{ form.removeWallpaper }} Remove wallpaper during incoming sessions</label><br>
-                    <a href="https://rustdesk.com/docs/en/self-host/client-configuration/advanced-settings/">Click here for a list of Default/Override settings</a>
-                    <label for="{{ form.defaultManual.id_for_label }}">Default settings</label><br>
+                <h2><i class="fas fa-cog"></i> 其他设置</h2>
+                    <label for="{{ form.removeWallpaper.id_for_label }}">{{ form.removeWallpaper }} 远程会话期间移除桌面壁纸</label><br>
+                    <a href="https://rustdesk.com/docs/zh-cn/self-host/client-configuration/advanced-settings/">点击此处查看可配置的高级选项列表</a>
+                    <label for="{{ form.defaultManual.id_for_label }}">默认设置（用户可修改）</label><br>
                     {{ form.defaultManual }}<br><br>
-                    <label for="{{ form.overrideManual.id_for_label }}">Override settings</label><br>
+                    <label for="{{ form.overrideManual.id_for_label }}">覆盖设置（用户不可修改）</label><br>
                     {{ form.overrideManual }}<br><br>
             </div>
         </div>
         <div class="platform">
             <div class="section">
-                <button type="submit"><i class="fas fa-rocket"></i> Generate Custom Client</button>
+                <button type="submit"><i class="fas fa-rocket"></i> 牛逼，开始制造</button>
             </div>
         </div>
         <div style="text-align: center; margin: 30px 0;">
@@ -389,7 +412,7 @@
             target="_blank" 
             class="sponsor-button">
                 <i class="fab fa-github"></i>
-                Source Code on Github
+                Source Code on Github（源代码）
             </a>
         </div>
         <div style="text-align: center; margin: 30px 0;">
@@ -397,7 +420,7 @@
             target="_blank" 
             class="sponsor-button">
                 <i class="fab fa-github"></i>
-                Donate
+                Donate（赞助作者）
             </a>
         </div>
     </form>

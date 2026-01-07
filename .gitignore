@@ -2,3 +2,14 @@
 db.sqlite3
 gunicorn.conf
 .venv
+# 忽略 Visual Studio 缓存
+.vs/
+# 忽略 Python 虚拟环境
+Lib/
+Scripts/
+pyvenv.cfg
+# 忽略 Claude 的配置
+.claude/
+# 忽略备份文件和临时文件
+*.backup
+nul
