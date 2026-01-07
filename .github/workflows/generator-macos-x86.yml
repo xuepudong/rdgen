@@ -158,7 +158,7 @@ jobs:
           # Do NOT use `brew install nasm` which installs NASM 3.x.
           # NASM 3.x is a complete rewrite with incompatible CLI options and removed features.
           # aom and other multimedia libraries require NASM 2.x for x86/x86_64 assembly.
-          wget https://www.nasm.us/pub/nasm/releasebuilds/2.16.03/macosx/nasm-2.16.03-macosx.zip
+          wget https://openbsd.c3sl.ufpr.br/kde-applicationdata/craft/3rdparty/nasm/2.16.03/nasm-2.16.03-macosx.zip
           unzip nasm-2.16.03-macosx.zip
           sudo cp nasm-2.16.03/nasm /usr/local/bin/nasm
           nasm --version
