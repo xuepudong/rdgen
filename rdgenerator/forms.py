@@ -3,7 +3,7 @@ from PIL import Image
 
 class GenerateForm(forms.Form):
     #Platform
-    platform = forms.ChoiceField(choices=[('windows','Windows 64位'),('windows-x86','Windows 32位'),('linux','Linux'),('android','Android'),('macos','macOS')], initial='windows')
+    platform = forms.ChoiceField(choices=[('windows','Windows 64位'),('windows-x86','Windows 32位'),('linux','Linux'),('android','Android'),('macos-x86','macOS x86 (Intel)'),('macos-aarch64','macOS ARM64 (Apple Silicon)')], initial='windows')
     version = forms.ChoiceField(choices=[('master','开发版（每夜构建）'),('1.4.4','1.4.4'),('1.4.3','1.4.3'),('1.4.2','1.4.2'),('1.4.1','1.4.1'),('1.4.0','1.4.0'),('1.3.9','1.3.9'),('1.3.8','1.3.8'),('1.3.7','1.3.7'),('1.3.6','1.3.6'),('1.3.5','1.3.5'),('1.3.4','1.3.4'),('1.3.3','1.3.3')], initial='1.4.4')
     help_text="'master' 是开发版本（每夜构建），具有最新功能但可能不太稳定"
     delayFix = forms.BooleanField(initial=True, required=False)

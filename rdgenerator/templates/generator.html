@@ -256,14 +256,22 @@
                     </span>
                     <i class="fab fa-linux platform-icon" data-platform="linux"></i>
                     <i class="fab fa-android platform-icon" data-platform="android"></i>
-                    <i class="fab fa-apple platform-icon" data-platform="macos"></i>
+                    <span class="fa-stack fa-lg">
+                        <i class="fab fa-apple fa-stack-2x platform-icon" data-platform="macos-x86"></i>
+                        <strong class="fa-stack-1x text-64" style="font-size: 0.4em;">x86</strong>
+                    </span>
+                    <span class="fa-stack fa-lg">
+                        <i class="fab fa-apple fa-stack-2x platform-icon" data-platform="macos-aarch64"></i>
+                        <strong class="fa-stack-1x text-64" style="font-size: 0.35em;">ARM</strong>
+                    </span>
                 </div>
                 <select name="platform" id="id_platform">
                     <option value="windows" selected>Windows 64位</option>
                     <option value="windows-x86">Windows 32位</option>
                     <option value="linux">Linux</option>
                     <option value="android">Android</option>
-                    <option value="macos">macOS</option>
+                    <option value="macos-x86">macOS x86 (Intel)</option>
+                    <option value="macos-aarch64">macOS ARM64 (Apple Silicon)</option>
                 </select>
                 <label for="{{ form.version.id_for_label }}">版本号：</label>
                 {{ form.version }}
