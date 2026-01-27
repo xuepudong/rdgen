@@ -1,693 +1,1189 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RustDesk Custom Client Builder</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #000;
-            color: #e0e0e0;
-            margin: 0;
-            padding: 20px;
-        }
-        .platform {
-            display: grid;
-            grid-template-columns: 1fr;
-            grid-gap: 20px;
-            margin: 0 auto;
-            padding: 20px;
-            max-width: 1200px;
-        }
-        .container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;  /* Adjust as needed */
-            grid-gap: 20px;
-            margin: 0 auto;  /* Center the container horizontally */
-            padding: 20px;
-            max-width: 1200px;
-        }
-        .column {
-            flex: 50%;
-        }
-        h1 {
-            color: #fff;
-            text-align: center;
-            grid-column: 1 / -1;
-        }
-        h2 {
-            color: #fff;
-            margin-top: 0;
-        }
-        .section {
-            background-color: #111;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            flex: 50%;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #bbb;
-        }
-        input[type="text"], input[type="password"], select, textarea {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            background-color: #222;
-            border: 1px solid #444;
-            border-radius: 4px;
-            color: #fff;
-        }
-        input[type="radio"], input[type="checkbox"] {
-            margin-right: 5px;
-        }
-        button {
-            background-color: #0077ff;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        button:hover {
-            background-color: #0066cc;
-        }
-        .platform-icons {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 20px;
-        }
-        .platform-icon {
-            font-size: 32px;
-            color: #bbb;
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-        .platform-icon:hover, .platform-icon.active {
-            color: #2e52f7;
-        }
-        .text-64 {
-            font-size: 0.5em; 
-            font-weight: bold;
-            bottom: -0.2em; 
-            right: -0.2em;
-            position: absolute; 
-            color: white;
-            transform: translate(-50%, -50%);
-        }
-
-        .text-32 {
-            font-size: 0.5em;
-            font-weight: bold;
-            bottom: -0.2em;
-            right: -0.2em;
-            position: absolute;
-            color: white;
-            transform: translate(-50%, -50%);
-        }
-        .checkbox-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-        }
-        .checkbox-group label {
-            display: flex;
-            align-items: center;
-        }
-        .preview-image {
-            max-width: 100%;
-            max-height: 100px;
-            margin-top: 10px;
-        }
-        .save-load-section-container { /* New container for fixed positioning */
-            position: fixed;
-            top: 20px; /* Adjust as needed */
-            left: 20px; /* Adjust as needed */
-            background-color: #111; /* Match your section background */
-            padding: 0px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 100; /* Ensure it's above other content */
-        }
-        .save-load-section {
-            display: none; /* Initially hidden */
-        }
-        .error {
-            color: red;
-        }
-        .errorlist {
-            color: red;
-            display: flex; /* Enable flexbox for centering */
-            justify-content: center; /* Center horizontally */
-            align-items: center; /* Center vertically (if needed) */
-            list-style: none; /* Remove bullet points if it's a list */
-            padding: 0; /* Remove default padding */
-            margin: 10px auto; /* Center the list itself, add some top/bottom margin */
-            width: fit-content; /* Make the width fit the content */
-        }
-
-        .errorlist li {
-            margin: 5px; /* Add some spacing between list items */
-        }
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        .help-text {
-            color: #ffd700;
-            font-style: italic;
-            animation: blink 2s infinite;
-            padding: 5px;
-            border-radius: 4px;
-            display: inline-block;
-            margin-left: 10px;
-        }
-
-        .password-requirement {
-            display: none; /* Hidden by default */
-            color: orange;
-            font-size: 0.9em;
-            margin-top: 5px;
-        }
-
-        .sponsor-button {
-            display: inline-flex;
-            align-items: center;
-            background: linear-gradient(135deg, #00457C 0%, #0079C1 100%);
-            color: white;
-            padding: 12px 28px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 16px;
-            letter-spacing: 0.5px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 69, 124, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            text-transform: uppercase;
-        }
-
-        .sponsor-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 69, 124, 0.3);
-            background: linear-gradient(135deg, #005AA7 0%, #0095EA 100%);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .sponsor-button i {
-            margin-right: 12px;
-            font-size: 20px;
-            background: white;
-            color: #00457C;
-            padding: 8px;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .sponsor-button:hover i {
-            transform: rotate(360deg);
-            color: #0095EA;
-        }
-      </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>客户端构建器</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body {
+font-family: 'Roboto', "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", sans-serif;
+background-color: #000;
+color: #e0e0e0;
+margin: 0;
+padding: 20px;
+}
+.platform {
+display: grid;
+grid-template-columns: 1fr;
+grid-gap: 20px;
+margin: 0 auto;
+padding: 20px;
+max-width: 1200px;
+}
+.container {
+display: grid;
+grid-template-columns: 1fr 1fr;
+grid-gap: 20px;
+margin: 0 auto;
+padding: 20px;
+max-width: 1200px;
+}
+.column {
+flex: 50%;
+}
+h1 {
+color: #fff;
+text-align: center;
+grid-column: 1 / -1;
+}
+h2 {
+color: #fff;
+margin-top: 0;
+}
+.section {
+background-color: #111;
+border-radius: 8px;
+padding: 20px;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+flex: 50%;
+}
+label {
+display: block;
+margin-bottom: 5px;
+color: #bbb;
+}
+input[type="text"], input[type="password"], select, textarea {
+width: 100%;
+padding: 8px;
+margin-bottom: 10px;
+background-color: #222;
+border: 1px solid #444;
+border-radius: 4px;
+color: #fff;
+}
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.form-check input[type="checkbox"],
+.form-check input[type="radio"] {
+  margin: 0;
+  flex-shrink: 0;
+}
+button {
+background-color: #0077ff;
+color: #fff;
+border: none;
+padding: 10px 20px;
+border-radius: 4px;
+cursor: pointer;
+transition: background-color 0.3s ease;
+}
+button:hover {
+background-color: #0066cc;
+}
+.platform-icons {
+display: flex;
+justify-content: space-around;
+margin-bottom: 20px;
+}
+.platform-icon {
+font-size: 32px;
+color: #bbb;
+cursor: pointer;
+transition: color 0.3s ease;
+}
+.platform-icon:hover, .platform-icon.active {
+color: #2e52f7;
+}
+.text-64 {
+font-size: 0.5em;
+font-weight: bold;
+bottom: -0.2em;
+right: -0.2em;
+position: absolute;
+color: white;
+transform: translate(-50%, -50%);
+}
+.text-32 {
+font-size: 0.5em;
+font-weight: bold;
+bottom: -0.2em;
+right: -0.2em;
+position: absolute;
+color: white;
+transform: translate(-50%, -50%);
+}
+.checkbox-group {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+gap: 10px;
+}
+.checkbox-group label {
+display: flex;
+align-items: center;
+}
+.preview-image {
+max-width: 100%;
+max-height: 100px;
+margin-top: 10px;
+}
+.save-load-section-container {
+position: fixed;
+top: 20px;
+right: 20px;
+background-color: #111;
+padding: 0px;
+border-radius: 8px;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+z-index: 100;
+}
+.save-load-section {
+display: none;
+}
+.error {
+color: red;
+}
+.errorlist {
+color: red;
+display: flex;
+justify-content: center;
+align-items: center;
+list-style: none;
+padding: 0;
+margin: 10px auto;
+width: fit-content;
+}
+.errorlist li {
+margin: 5px;
+}
+@keyframes blink {
+0% { opacity: 1; }
+50% { opacity: 0.5; }
+100% { opacity: 1; }
+}
+.help-text {
+color: #ffd700;
+font-style: italic;
+animation: blink 2s infinite;
+padding: 5px;
+border-radius: 4px;
+display: inline-block;
+margin-left: 10px;
+}
+.password-requirement {
+display: none;
+color: orange;
+font-size: 0.9em;
+margin-top: 5px;
+}
+.sponsor-button {
+display: inline-flex;
+align-items: center;
+background: linear-gradient(135deg, #00457C 0%, #0079C1 100%);
+color: white;
+padding: 12px 28px;
+border-radius: 50px;
+text-decoration: none;
+font-weight: 600;
+font-size: 16px;
+letter-spacing: 0.5px;
+transition: all 0.3s ease;
+box-shadow: 0 4px 15px rgba(0, 69, 124, 0.2);
+border: 2px solid rgba(255, 255, 255, 0.1);
+text-transform: uppercase;
+}
+.sponsor-button:hover {
+transform: translateY(-2px);
+box-shadow: 0 8px 25px rgba(0, 69, 124, 0.3);
+background: linear-gradient(135deg, #005AA7 0%, #0095EA 100%);
+border-color: rgba(255, 255, 255, 0.2);
+}
+.sponsor-button i {
+margin-right: 12px;
+font-size: 20px;
+background: white;
+color: #00457C;
+padding: 8px;
+border-radius: 50%;
+width: 20px;
+height: 20px;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: all 0.3s ease;
+}
+.sponsor-button:hover i {
+transform: rotate(360deg);
+color: #0095EA;
+}
+</style>
 </head>
 <body>
-    <h1><i class="fas fa-cogs"></i> RustDesk Custom Client Builder</h1>
-    <form id="myForm" action="/generator" method="post" enctype="multipart/form-data">
-        <div class="save-load-section-container">
-            <div class="section">
-                <h2 id="saveLoadTitle">Save/Load Configuration <i class="fas fa-chevron-down"></i></h2>  
-                <div class="save-load-section">  
-                    <button type="button" onclick="saveFormData()">Save Configuration</button>
-                    <input type="file" id="fileInput" style="display:none;" accept=".json">
-                    <button type="button" onclick="loadFormData()">Load Configuration</button>
-                </div>
-            </div>
-        </div>
-        {% if form.iconfile.errors %}
-            <ul class="errorlist">
-                {% for error in form.iconfile.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-        <div class="platform">
-            <h2><i class="fas fa-desktop"></i> Select Platform</h2>
-                <div class="platform-icons">
-                    <span class="fa-stack fa-lg">
-                        <i class="fab fa-windows  fa-stack-2x platform-icon active" data-platform="windows"></i>
-                        <strong class="fa-stack-1x text-64">64</strong>
-                    </span>
-                    <span class="fa-stack fa-lg">
-                        <i class="fab fa-windows  fa-stack-2x platform-icon" data-platform="windows-x86"></i>
-                        <strong class="fa-stack-1x text-32">32</strong>
-                    </span>
-                    <i class="fab fa-linux platform-icon" data-platform="linux"></i>
-                    <i class="fab fa-android platform-icon" data-platform="android"></i>
-                    <i class="fab fa-apple platform-icon" data-platform="macos"></i>
-                </div>
-                <select name="platform" id="id_platform">
-                    <option value="windows" selected>Windows 64Bit</option>
-                    <option value="windows-x86">Windows 32Bit</option>
-                    <option value="linux">Linux</option>
-                    <option value="android">Android</option>
-                    <option value="macos">macOS</option>
-                </select>
-                <label for="{{ form.version.id_for_label }}">Rustdesk Version:</label>
-                {{ form.version }}
-                {% if form.version.help_text %}
-                    <span class="help-text">{{ form.version.help_text }}</span>
-                {% endif %}
-                <div class="help-text">{{ form.version.help_text }}</div>
-                <label for="{{ form.delayFix.id_for_label }}">{{ form.delayFix }} Fix connection delay when using third-party API</label>
-            </div>
-        </div>
-        <div class="container">   
-            <div class="section">
-                <h2><i class="fas fa-sliders-h"></i> General</h2>
-                    <label for="{{ form.exename.id_for_label }}">Name of the configuration (no spaces or special characters, English characters only):</label>
-                    {{ form.exename }}<span id="filenameError" class="error"></span><br><br>
-                    <label for="{{ form.appname.id_for_label }}">Custom Application Name (leave blank to use default):</label>
-                    {{ form.appname }}<br><br>
-                    <label for="{{ form.direction.id_for_label }}">Connection Type:</label>
-                    {{ form.direction }}<br><br>
-                    <label for="{{ form.installation.id_for_label }}">Disable Installation:</label>
-                    {{ form.installation }}<br><br>
-                    <label for="{{ form.settings.id_for_label }}">Disable Settings:</label>
-                    {{ form.settings }}<br><br>
-                    <label for="{{ form.androidappid.id_for_label }}">Custom Android App ID (replaces 'com.carriez.flutter_hbb', leave blank to use default):</label>
-                    {{ form.androidappid }}<br><br>
-            </div>
+<h1><i class="fas fa-cogs"></i> 客户端构建器</h1>
+<form id="myForm" action="/generator" method="post" enctype="multipart/form-data">
+{% csrf_token %}
 
-            <div class="section">
-                <h2><i class="fas fa-server"></i> Custom Server</h2>
-                    <label for="{{ form.serverIP.id_for_label }}">Host:</label>
-                    {{ form.serverIP }}<br><br>
-                    <label for="{{ form.key.id_for_label }}">Key:</label>
-                    {{ form.key }}<br><br>
-                    <label for="{{ form.apiServer.id_for_label }}">API:</label>
-                    {{ form.apiServer }}<br><br>
-                    <label for="{{ form.urlLink.id_for_label }}">Custom URL for links (replaces https://rustdesk.com):</label>
-                    {{ form.urlLink }}<br><br>
-                    <label for="{{ form.downloadLink.id_for_label }}">Custom URL for downloading updates (replaces https://rustdesk.com/download):</label>
-                    {{ form.downloadLink }}<br><br>
-                    <label for="{{ form.compname.id_for_label }}">Company name for copyright (replaces Purslane Ltd):</label>
-                    {{ form.compname }}<br><br>
-            </div>
-        </div>
-        <div class="container">
-            <div class="section">
-                <h2><i class="fas fa-shield-alt"></i> Security</h2>
-                    <label for="{{ form.passApproveMode.id_for_label }}">Password Approve mode:</label>
-                    {{ form.passApproveMode }}<br><br>
-                    <div id="passwordRequirement" class="password-requirement">To use the hide connection window feature, please set a permanent password.</div>
-                    <label for="{{ form.permanentPassword.id_for_label }}">Set Permanent Password:</label>
-                    {{ form.permanentPassword }} *The password is used as default, but can be changed by the client<br><br>
-                    
-                    
-                    <label for="{{ form.denyLan.id_for_label }}">{{ form.denyLan }} Deny LAN discovery</label><br>
-                    
-                    <label for="{{ form.enableDirectIP.id_for_label }}">{{ form.enableDirectIP }} Enable direct IP access</label><br>
-                    
-                    <label for="{{ form.autoClose.id_for_label }}">{{ form.autoClose }} Automatically close incoming sessions on user inactivity</label><br>
+  <!-- 保存/加载配置 -->
+  <div class="save-load-section-container mb-4">
+    <div class="card bg-dark text-light border-secondary shadow-sm">
+      <div class="card-header bg-secondary text-white d-flex align-items-center">
+        <i class="fas fa-save me-2"></i> 保存/加载配置
+      </div>
+      <div class="card-body">
+        <button type="button" onclick="saveFormData()" class="btn btn-outline-primary me-2">保存配置</button>
+        <input type="file" id="fileInput" style="display:none;" accept=".json">
+        <button type="button" onclick="loadFormData()" class="btn btn-outline-success">加载配置</button>
+      </div>
+    </div>
+  </div>
 
-                    <label for="{{ form.hidecm.id_for_label }}">{{ form.hidecm }} Allow hiding the connection window from remote screen.</label><br>
-            </div>
-        
-            <div class="section">
-                <h2><i class="fas fa-paint-brush"></i> Visual</h2>
-                    {{ form.iconbase64.as_hidden }}
-                    {{ form.logobase64.as_hidden }}
-                    {{ form.privacybase64.as_hidden }}
-                    <label for="{{ form.iconfile.id_for_label }}">Custom App Icon (in .png format)</label>
-                    {{ form.iconfile }}<br><br>
-                    <!-- <input type="file" name="iconfile" id="iconfile" accept="image/png"> -->
-                    <div id="icon-preview"></div><br><br>
-                    <label for="{{ form.logofile.id_for_label }}">Custom App Logo (in .png format)</label>
-                    {{ form.logofile }}<br><br>
-                    <!-- <input type="file" name="logofile" id="logofile" accept="image/png"> -->
-                    <div id="logo-preview"></div><br><br>
-                    <label for="{{ form.privacyfile.id_for_label }}">Custom Privacy Screen (in .png format)</label>
-                    {{ form.privacyfile }}<br><br>
-                    <!-- <input type="file" name="iconfile" id="iconfile" accept="image/png"> -->
-                    <div id="privacy-preview"></div><br><br>
-                    <label for="{{ form.theme.id_for_label }}">Theme:</label>
-                    {{ form.theme }} {{ form.themeDorO }} *Default sets the theme but allows the client to change it, Override sets the theme permanently.<br><br>
-            </div>
-        </div>
-        <div class="container">
-            <div class="section">
-                <h2><i class="fas fa-lock"></i> Permissions</h2>
-                    The following Permissions can be set as default (the user can change the settings) or override (the settings cannot be changed).<br>
-                    {{ form.permissionsDorO }}
-                    <label for="{{ form.permissionsType.id_for_label }}">Permission type:</label>
-                    {{ form.permissionsType }}<br><br>
-                    <div class="checkbox-group">
-                        <label for="{{ form.enableKeyboard.id_for_label }}">{{ form.enableKeyboard }} Enable keyboard/mouse</label>
-                        <label for="{{ form.enableClipboard.id_for_label }}">{{ form.enableClipboard }} Enable clipboard</label>
-                        <label for="{{ form.enableFileTransfer.id_for_label }}">{{ form.enableFileTransfer }} Enable file transfer</label>
-                        <label for="{{ form.enableAudio.id_for_label }}">{{ form.enableAudio }} Enable audio</label>
-                        <label for="{{ form.enableTCP.id_for_label }}">{{ form.enableTCP }} Enable TCP tunneling</label>
-                        <label for="{{ form.enableRemoteRestart.id_for_label }}">{{ form.enableRemoteRestart }} Enable remote restart</label>
-                        <label for="{{ form.enableRecording.id_for_label }}">{{ form.enableRecording }} Enable recording session</label>
-                        <label for="{{ form.enableBlockingInput.id_for_label }}">{{ form.enableBlockingInput }} Enable blocking user input</label>
-                        <label for="{{ form.enableRemoteModi.id_for_label }}">{{ form.enableRemoteModi }} Enable remote configuration modification</label>
-                        <label for="{{ form.enablePrinter.id_for_label }}">{{ form.enablePrinter }} Enable remote printer</label>
-                        <label for="{{ form.enableCamera.id_for_label }}">{{ form.enableCamera }} Enable remote camera</label>
-                        <label for="{{ form.enableTerminal.id_for_label }}">{{ form.enableTerminal }} Enable remote terminal</label>
-                    </div><br>
-                <h2><i class="fas fa-code"></i> Code Changes</h2>
-                    <label for="{{ form.cycleMonitor.id_for_label }}">{{ form.cycleMonitor }} Add a button to cycle through available monitors to the minimized toolbar.</label><br>
-                    <label for="{{ form.xOffline.id_for_label }}">{{ form.xOffline }} Display an X for offline devices in the addressbook.</label><br>
-                    <label for="{{ form.removeNewVersionNotif.id_for_label }}">{{ form.removeNewVersionNotif }} Remove notification for new versions.</label><br>
-            </div>
+  {% if form.iconfile.errors %}
+    <ul class="errorlist">
+        {% for error in form.iconfile.errors %}
+            <li>{{ error }}</li>
+        {% endfor %}
+    </ul>
+  {% endif %}
 
-            <div class="section">
-                <h2><i class="fas fa-cog"></i> Other</h2>
-                    <label for="{{ form.removeWallpaper.id_for_label }}">{{ form.removeWallpaper }} Remove wallpaper during incoming sessions</label><br>
-                    <a href="https://rustdesk.com/docs/en/self-host/client-configuration/advanced-settings/">Click here for a list of Default/Override settings</a>
-                    <label for="{{ form.defaultManual.id_for_label }}">Default settings</label><br>
-                    {{ form.defaultManual }}<br><br>
-                    <label for="{{ form.overrideManual.id_for_label }}">Override settings</label><br>
-                    {{ form.overrideManual }}<br><br>
+  <!-- 平台选择 -->
+  <div class="card bg-dark text-light border-secondary shadow-sm mb-4">
+    <div class="card-header bg-secondary text-white d-flex align-items-center">
+      <i class="fas fa-desktop me-2"></i> 选择平台
+    </div>
+    <div class="card-body">
+      <div class="platform-icons mb-3">
+        <span class="fa-stack fa-lg me-2">
+          <i class="fab fa-windows fa-stack-2x platform-icon active" data-platform="windows"></i>
+          <strong class="fa-stack-1x text-64">64</strong>
+        </span>
+        <span class="fa-stack fa-lg me-2">
+          <i class="fab fa-windows fa-stack-2x platform-icon" data-platform="windows-x86"></i>
+          <strong class="fa-stack-1x text-32">32</strong>
+        </span>
+        <i class="fab fa-linux platform-icon me-2" data-platform="linux"></i>
+        <i class="fab fa-android platform-icon me-2" data-platform="android"></i>
+        <i class="fab fa-apple platform-icon" data-platform="macos"></i>
+      </div>
+      {{ form.platform }}
+        <div class="mb-3">
+          <label for="{{ form.version.id_for_label }}" class="form-label">版本号：</label>
+          {{ form.version }}
+          <div class="form-text"></div>
+        </div>
+        <div class="mb-3 form-check">
+          {{ form.ui_mode }}
+          <label class="form-check-label" for="{{ form.ui_mode.id_for_label }}">
+            启用定制版用户界面
+          </label>
+        </div>
+        <div class="mb-3 form-check">
+          {{ form.delayFix }}
+          <label class="form-check-label" for="{{ form.delayFix.id_for_label }}">
+            修复使用第三方 API 时的连接延迟
+          </label>
+        </div>
+        <div class="mb-3">
+          <div class="form-text text-warning mt-2">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+            客户端构建器的部分功能，均以 Windows 64 位系统为基准进行适配，无法确保在其他操作系统正常生效，预设密码仅允许软件安装后使用
+          </div>
+        </div>
+    </div>
+  </div>
+
+
+<!-- 第一行：通用设置 & 服务器配置 -->
+<div class="row g-4 mb-4">
+  <!-- 通用设置 -->
+  <div class="col-lg-6">
+    <div class="card bg-dark text-light border-secondary shadow-sm h-100">
+      <div class="card-header bg-secondary text-white d-flex align-items-center">
+        <i class="fas fa-sliders-h me-2"></i> 通用设置
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label for="{{ form.exename.id_for_label }}" class="form-label">配置名称（仅限英文字符）：</label>
+          {{ form.exename }}
+          <div id="filenameError" class="text-danger small"></div>
+        </div>
+        <div class="mb-3">
+          <label for="{{ form.appname.id_for_label }}" class="form-label">应用名称：</label>
+          {{ form.appname }}
+        </div>
+        <div class="mb-3">
+          <label for="{{ form.androidappid.id_for_label }}" class="form-label">安卓客户端标识符(默认'com.carriez.flutter_hbb')</label>
+          {{ form.androidappid }}
+        </div>
+        <div class="mb-3">
+          <label for="" class="form-label">客户端类型：</label>
+          {{ form.direction }}
+        </div>
+        <div class="mb-3">
+          <label for="{{ form.installation.id_for_label }}" class="form-label">安装行为：</label>
+          {{ form.installation }}
+          <small class="form-text text-muted">* 禁止安装 = 用户无法安装</small>
+        </div>
+        <div class="mb-3">
+          <label for="{{ form.settings.id_for_label }}" class="form-label">设置权限：</label>
+          {{ form.settings }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 服务器配置 -->
+  <div class="col-lg-6">
+    <div class="card bg-dark text-light border-secondary shadow-sm h-100">
+      <div class="card-header bg-secondary text-white d-flex align-items-center">
+        <i class="fas fa-server me-2"></i> 服务器配置
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label for="{{ form.serverIP.id_for_label }}" class="form-label">服务器地址：</label>
+          {{ form.serverIP }}
+        </div>
+        <div class="mb-3">
+          <label for="{{ form.RS_PUB_KEY.id_for_label }}" class="form-label">密钥（公钥）：</label>
+          {{ form.RS_PUB_KEY }}
+        </div>
+        <div class="mb-3">
+          <label for="{{ form.apiServer.id_for_label }}" class="form-label">API 地址：</label>
+          {{ form.apiServer }}
+        </div>
+        <div class="mb-3">
+          <label for="{{ form.urlLink.id_for_label }}" class="form-label">门户网站：</label>
+          {{ form.urlLink }}
+        </div>
+        <div class="mb-3">
+          <label for="{{ form.downloadLink.id_for_label }}" class="form-label">更新下载链接：</label>
+          {{ form.downloadLink }}
+        </div>
+        <div class="mb-3">
+          <label for="{{ form.updateLink.id_for_label }}" class="form-label">在线更新链接：</label>
+          {{ form.updateLink }}
+        </div>
+        <div class="mb-3">
+          <label for="{{ form.compname.id_for_label }}" class="form-label">公司名称：</label>
+          {{ form.compname }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 第二行：安全设置 & 外观设置 -->
+<div class="row g-4 mb-4">
+  <!-- 安全设置 -->
+  <div class="col-lg-6">
+    <div class="card bg-dark text-light border-secondary shadow-sm h-100">
+      <div class="card-header bg-secondary text-white d-flex align-items-center">
+        <i class="fas fa-shield-alt me-2"></i> 安全设置
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label for="{{ form.passApproveMode.id_for_label }}" class="form-label">认证方式：</label>
+          {{ form.passApproveMode }}
+        </div>
+        <div class="mb-3">
+          <label for="{{ form.permanentPassword.id_for_label }}" class="form-label">预设密码：</label>
+          {{ form.permanentPassword }}
+        </div>
+        <div class="mb-3">
+        <label for="{{ form.unlockPin.id_for_label }}" class="form-label">配置PIN：</label>
+        {{ form.unlockPin }}
+        </div>
+
+        <!-- 多列复选框：安全与界面设置（三列） -->
+        <div class="row g-2">
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.denyLan }}
+              <label for="{{ form.denyLan.id_for_label }}" class="form-check-label">隐藏于局域网</label>
             </div>
-        </div>
-        <div class="platform">
-            <div class="section">
-                <button type="submit"><i class="fas fa-rocket"></i> Generate Custom Client</button>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.enableDirectIP }}
+              <label for="{{ form.enableDirectIP.id_for_label }}" class="form-check-label">启用IP访问</label>
             </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.autoClose }}
+              <label for="{{ form.autoClose.id_for_label }}" class="form-check-label">自动关闭会话</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.hideSecuritySettings }}
+              <label for="{{ form.hideSecuritySettings.id_for_label }}" class="form-check-label">隐藏安全设置</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.hideNetworkSettings }}
+              <label for="{{ form.hideNetworkSettings.id_for_label }}" class="form-check-label">隐藏网络设置</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.hideServerSettings }}
+              <label for="{{ form.hideServerSettings.id_for_label }}" class="form-check-label">隐藏服务器设置</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.hideRemotePrinterSettings }}
+              <label for="{{ form.hideRemotePrinterSettings.id_for_label }}" class="form-check-label">隐藏远程打印设置</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.hide_account }}
+              <label for="{{ form.hide_account.id_for_label }}" class="form-check-label">隐藏账户设置</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.remove_preset_password_warning }}
+              <label for="{{ form.remove_preset_password_warning.id_for_label }}" class="form-check-label">隐藏密码警告</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.hideProxySettings }}
+              <label for="{{ form.hideProxySettings.id_for_label }}" class="form-check-label">隐藏代理设置</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.hideWebsocketSettings }}
+              <label for="{{ form.hideWebsocketSettings.id_for_label }}" class="form-check-label">隐藏 WebSocket 设置</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.hidecm }}
+              <label for="{{ form.hidecm.id_for_label }}" class="form-check-label">隐藏连接管理窗口</label>
+            </div>
+          </div>
         </div>
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="https://github.com/bryangerlach/rdgen" 
-            target="_blank" 
-            class="sponsor-button">
-                <i class="fab fa-github"></i>
-                Source Code on Github
-            </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 外观设置 -->
+  <div class="col-lg-6">
+    <div class="card bg-dark text-light border-secondary shadow-sm h-100">
+      <div class="card-header bg-secondary text-white d-flex align-items-center">
+        <i class="fas fa-paint-brush me-2"></i> 外观设置
+      </div>
+      <div class="card-body">
+        {{ form.iconbase64.as_hidden }}
+        {{ form.logobase64.as_hidden }}
+        {{ form.privacybase64.as_hidden }}
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label for="{{ form.iconfile.id_for_label }}" class="form-label">应用图标（PNG 格式）：</label>
+            {{ form.iconfile }}
+            <div id="icon-preview" class="mt-2"></div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="{{ form.logofile.id_for_label }}" class="form-label">品牌标识（PNG 格式）：</label>
+            {{ form.logofile }}
+            <div id="logo-preview" class="mt-2"></div>
+          </div>
         </div>
-        <div style="text-align: center; margin: 30px 0;">
-            <a href="https://github.com/sponsors/bryangerlach?o=esb"
-            target="_blank" 
-            class="sponsor-button">
-                <i class="fab fa-github"></i>
-                Donate
-            </a>
+        <div class="row g-3 mb-3">
+          <div class="col-md-12">
+            <label for="{{ form.privacy_wallpaper.id_for_label }}" class="form-label">
+              隐私模式背景图（PNG 格式）：
+            </label>
+              {{ form.privacy_wallpaper }}
+            <div class="form-text text-warning mt-2">
+            <i class="fas fa-exclamation-triangle me-1"></i>
+            *上传的图片大小均不得超过500KB，隐私背景图优选1920×1080规格的图片
+          </div>
+            <div id="privacy-wallpaper-preview" class="mt-2"></div>
+          </div>
         </div>
-    </form>
-    <script>
-        document.querySelectorAll('.platform-icon').forEach(icon => {
-            icon.addEventListener('click', function() {
-                document.querySelectorAll('.platform-icon').forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-                document.getElementById('id_platform').value = this.dataset.platform;
-            });
-        });
-        document.getElementById("{{ form.iconfile.id_for_label }}").addEventListener('change', function(event) {
-            previewImage(event.target, 'icon-preview');
-        });
-        document.getElementById("{{ form.logofile.id_for_label }}").addEventListener('change', function(event) {
-            previewImage(event.target, 'logo-preview');
-        });
-        document.getElementById("{{ form.privacyfile.id_for_label }}").addEventListener('change', function(event) {
-            previewImage(event.target, 'privacy-preview');
-        });
 
-        document.getElementById("{{ form.hidecm.id_for_label }}").addEventListener('change',function() {
-            if (this.checked) {
-                document.getElementById("passwordRequirement").style.display = 'block';
-                document.getElementById("{{ form.permanentPassword.id_for_label }}").focus();
-                document.getElementById("{{ form.passApproveMode.id_for_label }}").value = 'password';
-            } else {
-                document.getElementById("passwordRequirement").style.display = 'none';
-                document.getElementById("{{ form.passApproveMode.id_for_label }}").value = 'password-click';
-            }
-        });
-        const enableKeyboard = document.getElementById("{{ form.enableKeyboard.id_for_label }}");
-        const enableClipboard = document.getElementById("{{ form.enableClipboard.id_for_label }}");
-        const enableFileTransfer = document.getElementById("{{ form.enableFileTransfer.id_for_label }}");
-        const enableAudio = document.getElementById("{{ form.enableAudio.id_for_label }}");
-        const enableTCP = document.getElementById("{{ form.enableTCP.id_for_label }}");
-        const enableRemoteRestart = document.getElementById("{{ form.enableRemoteRestart.id_for_label }}");
-        const enableRecording = document.getElementById("{{ form.enableRecording.id_for_label }}");
-        const enableBlockingInput = document.getElementById("{{ form.enableBlockingInput.id_for_label }}");
-        const enableRemoteModi = document.getElementById("{{ form.enableRemoteModi.id_for_label }}");
-        const enablePrinter = document.getElementById("{{ form.enablePrinter.id_for_label }}");
-        const enableCamera = document.getElementById("{{ form.enableCamera.id_for_label }}");
-        const enableTerminal = document.getElementById("{{ form.enableTerminal.id_for_label }}");
+        <div class="mb-3">
+          <label for="{{ form.theme.id_for_label }}" class="form-label">主题：</label>
+          {{ form.theme }} {{ form.themeDorO }}
+       <div class="mb-3">
+          <label for="{{ form.image_quality.id_for_label }}">图像质量:</label>
+          {{ form.image_quality }}
+     </div>
 
-        document.getElementById("{{ form.permissionsType.id_for_label }}").addEventListener('change', function() {
-            if (this.value === 'full') {
-                enableKeyboard.checked = true;
-                enableClipboard.checked = true;
-                enableFileTransfer.checked = true;
-                enableAudio.checked = true;
-                enableTCP.checked = true;
-                enableRemoteRestart.checked = true;
-                enableRecording.checked = true;
-                enableBlockingInput.checked = true;
-                enableRemoteModi.checked = true;
-                enablePrinter.checked = true;
-                enableCamera.checked = true;
-                enableTerminal.checked = true;
+       <div class="mb-3">
+         <label for="{{ form.custom_fps.id_for_label }}">自定义帧率:</label>
+         {{ form.custom_fps }}
+  </div>
 
-                enableKeyboard.disabled = true;
-                enableClipboard.disabled = true;
-                enableFileTransfer.disabled = true;
-                enableAudio.disabled = true;
-                enableTCP.disabled = true;
-                enableRemoteRestart.disabled = true;
-                enableRecording.disabled = true;
-                enableBlockingInput.disabled = true;
-                enableRemoteModi.disabled = true;
-                enablePrinter.disabled = true;
-                enableCamera.disabled = true;
-                enableTerminal.disable = true;
-            } else if (this.value === 'view') {
-                enableKeyboard.checked = false;
-                enableClipboard.checked = false;
-                enableFileTransfer.checked = false;
-                enableAudio.checked = false;
-                enableTCP.checked = false;
-                enableRemoteRestart.checked = false;
-                enableRecording.checked = false;
-                enableBlockingInput.checked = false;
-                enableRemoteModi.checked = false;
-                enablePrinter.checked = false;
-                enableCamera.checked = false;
-                enableTerminal.checked = false;
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-                enableKeyboard.disabled = true;
-                enableClipboard.disabled = true;
-                enableFileTransfer.disabled = true;
-                enableAudio.disabled = true;
-                enableTCP.disabled = true;
-                enableRemoteRestart.disabled = true;
-                enableRecording.disabled = true;
-                enableBlockingInput.disabled = true;
-                enableRemoteModi.disabled = true;
-                enablePrinter.disabled = true;
-                enableCamera.disabled = true;
-                enableTerminal.disable = true;
-            } else if (this.value === 'custom') {
-                enableKeyboard.disabled = false;
-                enableClipboard.disabled = false;
-                enableFileTransfer.disabled = false;
-                enableAudio.disabled = false;
-                enableTCP.disabled = false;
-                enableRemoteRestart.disabled = false;
-                enableRecording.disabled = false;
-                enableBlockingInput.disabled = false;
-                enableRemoteModi.disabled = false;
-                enablePrinter.checked = false;
-                enableCamera.checked = false;
-                enableTerminal.checked = false;
-            }
-        });
-        function previewImage(input, previewContainerId) {
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    var img = document.createElement('img');
-                    img.src = e.target.result;   
-                    img.style.maxWidth = '300px';
-                    img.style.maxHeight = '60px';
-                    document.getElementById(previewContainerId).innerHTML = '';
-                    document.getElementById(previewContainerId).appendChild(img);
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
+<!-- 第三行：权限控制 & 高级设置 -->
+<div class="row g-4 mb-4">
+ <!-- 权限控制 -->
+<div class="col-lg-6">
+  <div class="card bg-dark text-light border-secondary shadow-sm h-100">
+    <div class="card-header bg-secondary text-white d-flex align-items-center">
+      <i class="fas fa-lock me-2"></i> 权限控制
+    </div>
+    <div class="card-body">
+      <div class="mb-3">
+        <label for="{{ form.permissionsType.id_for_label }}" class="form-label">权限预设：</label>
+        {{ form.permissionsType }}
+      </div>
+      <div class="mb-3">
+        <label for="{{ form.permissionsDorO.id_for_label }}" class="form-label">权限模式：</label>
+        {{ form.permissionsDorO }}
+      </div>
+
+        <!-- 多列复选框：权限控制（三列） -->
+        <div class="row g-2">
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.enableKeyboard }}
+              <label for="{{ form.enableKeyboard.id_for_label }}" class="form-check-label">启用键盘控制</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.enableClipboard }}
+              <label for="{{ form.enableClipboard.id_for_label }}" class="form-check-label">启用剪贴板同步</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.enableFileTransfer }}
+              <label for="{{ form.enableFileTransfer.id_for_label }}" class="form-check-label">启用文件传输</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.enableAudio }}
+              <label for="{{ form.enableAudio.id_for_label }}" class="form-check-label">启用音频传输</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.enableTCP }}
+              <label for="{{ form.enableTCP.id_for_label }}" class="form-check-label">启用 TCP 隧道</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.enableRemoteRestart }}
+              <label for="{{ form.enableRemoteRestart.id_for_label }}" class="form-check-label">启用远程重启</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.enableRecording }}
+              <label for="{{ form.enableRecording.id_for_label }}" class="form-check-label">启用会话录制</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.enableBlockingInput }}
+              <label for="{{ form.enableBlockingInput.id_for_label }}" class="form-check-label">启用输入锁定</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.enableRemoteModi }}
+              <label for="{{ form.enableRemoteModi.id_for_label }}" class="form-check-label">允许远程修改配置</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.enablePrinter }}
+              <label for="{{ form.enablePrinter.id_for_label }}" class="form-check-label">启用远程打印</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.enableCamera }}
+              <label for="{{ form.enableCamera.id_for_label }}" class="form-check-label">启用摄像头访问</label>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check">
+              {{ form.enableTerminal }}
+              <label for="{{ form.enableTerminal.id_for_label }}" class="form-check-label">启用终端访问</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 高级设置 -->
+  <div class="col-lg-6">
+    <div class="card bg-dark text-light border-secondary shadow-sm h-100">
+      <div class="card-header bg-secondary text-white d-flex align-items-center">
+        <i class="fas fa-cog me-2"></i> 高级设置
+      </div>
+      <div class="card-body">
+      <div class="row g-2">
+        <div class="col-md-6">
+          <div class="form-check">
+            {{ form.removeWallpaper }}
+            <label for="{{ form.removeWallpaper.id_for_label }}" class="form-check-label">远程会话期间移除桌面壁纸</label>
+          </div>
+        </div>
+      </div>
+        <p class="mb-3">
+          <a href="https://rustdesk.com/docs/zh-cn/self-host/client-configuration/advanced-settings/"
+             target="_blank"
+             rel="noopener noreferrer"
+             class="text-primary text-decoration-none small">
+              点击此处查看可用的高级设置列表
+          </a>
+        </p>
+
+<div class="mb-3">
+  <label for="{{ form.defaultManual.id_for_label }}" class="form-label">默认设置（用户可修改）</label>
+  {{ form.defaultManual }}
+</div>
+
+<div class="mb-3">
+  <label for="{{ form.overrideManual.id_for_label }}" class="form-label">覆盖设置（用户不可修改）</label>
+  {{ form.overrideManual }}
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 附加功能 (分为主控端、被控端、公用功能) -->
+<div class="card bg-dark text-light border-secondary shadow-sm mb-4">
+  <div class="card-header bg-secondary text-white d-flex align-items-center">
+    <i class="fas fa-code me-2"></i> 附加功能
+  </div>
+  <div class="card-body">
+
+    <!-- 主控端功能 -->
+    <div class="mb-4">
+      <h6 class="text-white fw-bold mb-2">
+        <i class="fas fa-desktop text-primary me-1"></i> 主控端功能
+      </h6>
+      <div class="row g-2">
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.cycleMonitor }}
+            <label for="{{ form.cycleMonitor.id_for_label }}" class="form-check-label">在会话顶部显示显示器切换按钮</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.xOffline }}
+            <label for="{{ form.xOffline.id_for_label }}" class="form-check-label">在地址簿中标记离线设备</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.hide_chat_voice }}
+            <label for="{{ form.hide_chat_voice.id_for_label }}" class="form-check-label">隐藏会话中的聊天与语音功能</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.viewOnly }}
+            <label for="{{ form.viewOnly.id_for_label }}" class="form-check-label">默认以浏览模式连接会话</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.collapse_toolbar }}
+            <label for="{{ form.collapse_toolbar.id_for_label }}" class="form-check-label">会话启动时自动折叠工具栏</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.privacy_mode }}
+            <label for="{{ form.privacy_mode.id_for_label }}" class="form-check-label">默认进入隐私模式</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.hide_username_on_card }}
+            <label for="{{ form.hide_username_on_card.id_for_label }}" class="form-check-label">在连接卡片中隐藏用户名</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 被控端功能 -->
+    <div class="mb-4">
+      <h6 class="text-white fw-bold mb-2">
+        <i class="fas fa-laptop text-success me-1"></i> 被控端功能
+      </h6>
+      <div class="row g-2">
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.hideTray }}
+            <label for="{{ form.hideTray.id_for_label }}" class="form-check-label">隐藏托盘图标</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.hidePassword }}
+            <label for="{{ form.hidePassword.id_for_label }}" class="form-check-label">隐藏临时密码面板</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.hideMenuBar }}
+            <label for="{{ form.hideMenuBar.id_for_label }}" class="form-check-label">隐藏设置菜单</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.hideQuit }}
+            <label for="{{ form.hideQuit.id_for_label }}" class="form-check-label">隐藏退出按钮</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.addcopy }}
+            <label for="{{ form.addcopy.id_for_label }}" class="form-check-label">添加复制按钮</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.applyprivacy }}
+            <label for="{{ form.applyprivacy.id_for_label }}" class="form-check-label">禁止被控端退出隐私模式</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.passpolicy }}
+            <label for="{{ form.passpolicy.id_for_label }}" class="form-check-label">允许使用简单的临时密码</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.allowHostnameAsId }}
+            <label for="{{ form.allowHostnameAsId.id_for_label }}" class="form-check-label">使用主机名作为 ID（Windows 10 及以上）</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.hideService_Start_Stop }}
+            <label for="{{ form.hideService_Start_Stop.id_for_label }}" class="form-check-label">隐藏常规和托盘的服务启停</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 通用功能 -->
+    <div class="mb-4">
+      <h6 class="text-white fw-bold mb-2">
+        <i class="fas fa-share-alt text-info me-1"></i> 通用功能
+      </h6>
+      <div class="row g-2">
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.removeNewVersionNotif }}
+            <label for="{{ form.removeNewVersionNotif.id_for_label }}" class="form-check-label">移除新版本通知</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.disable_check_update }}
+            <label for="{{ form.disable_check_update.id_for_label }}" class="form-check-label">禁用启动时检查更新</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.no_uninstall }}
+            <label for="{{ form.no_uninstall.id_for_label }}" class="form-check-label">不创建卸载快捷方式</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.disable_install }}
+            <label for="{{ form.disable_install.id_for_label }}" class="form-check-label">生成便携版</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.allowD3dRender }}
+            <label for="{{ form.allowD3dRender.id_for_label }}" class="form-check-label">启用 Direct3D 渲染</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.use_texture_render }}
+            <label for="{{ form.use_texture_render.id_for_label }}" class="form-check-label">启用纹理渲染（Windows 10 及以上）</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.pre_elevate_service }}
+            <label for="{{ form.pre_elevate_service.id_for_label }}" class="form-check-label">启动时自动提权</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.sync_init_clipboard }}
+            <label for="{{ form.sync_init_clipboard.id_for_label }}" class="form-check-label">同步初始剪贴板内容</label>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+          <div class="form-check">
+            {{ form.hide_powered_by_me }}
+            <label for="{{ form.hide_powered_by_me.id_for_label }}" class="form-check-label">隐藏"技术支持"标识</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+  <!-- 提交按钮 -->
+  <div class="d-grid">
+    <button type="submit" class="btn btn-primary btn-lg px-5 py-3 shadow">
+      <i class="fas fa-rocket me-2"></i>生成自定义客户端
+    </button>
+  </div>
+
+  <div style="text-align: center; margin: 30px 0;">
+    <a href="https://github.com/bryangerlach/rdgen"
+    target="_blank"
+    class="sponsor-button">
+        <i class="fab fa-github"></i>
+        源代码 - Github
+    </a>
+  </div>
+
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const fpsSelect = document.getElementById('{{ form.custom_fps.id_for_label }}');
+    const qualitySelect = document.getElementById('{{ form.image_quality.id_for_label }}');
+
+    if (!fpsSelect || !qualitySelect) return;
+
+    const enforceCustomOnHighFPS = () => {
+        const fps = parseInt(fpsSelect.value);
+        if ([60, 90, 120].includes(fps)) {
+            qualitySelect.value = 'custom';
         }
-        const saveLoadTitle = document.getElementById("saveLoadTitle");
-        const saveLoadSection = document.querySelector(".save-load-section");
+    };
 
-        saveLoadTitle.addEventListener("click", () => {
-            if (!saveLoadSection.style.display || saveLoadSection.style.display === "none") {
-                saveLoadSection.style.display = "block";
-            } else {
-                saveLoadSection.style.display = "none";
+    enforceCustomOnHighFPS();
+    fpsSelect.addEventListener('change', enforceCustomOnHighFPS);
+});
+</script>
+
+<script>
+document.querySelectorAll('.platform-icon').forEach(icon => {
+icon.addEventListener('click', function() {
+document.querySelectorAll('.platform-icon').forEach(i => i.classList.remove('active'));
+this.classList.add('active');
+document.getElementById('{{ form.platform.id_for_label }}').value = this.dataset.platform;
+});
+});
+
+document.getElementById("{{ form.iconfile.id_for_label }}").addEventListener('change', function(event) {
+previewImage(event.target, 'icon-preview');
+});
+document.getElementById("{{ form.logofile.id_for_label }}").addEventListener('change', function(event) {
+previewImage(event.target, 'logo-preview');
+});
+document.getElementById("{{ form.privacy_wallpaper.id_for_label }}").addEventListener('change', function(event) {
+previewImage(event.target, 'privacy-wallpaper-preview');
+});
+
+document.getElementById("{{ form.hidecm.id_for_label }}").addEventListener('change', function() {
+if (this.checked) {
+document.getElementById("{{ form.permanentPassword.id_for_label }}").focus();
+document.getElementById("{{ form.passApproveMode.id_for_label }}").value = 'password';
+} else {
+document.getElementById("{{ form.passApproveMode.id_for_label }}").value = 'password-click';
+}
+});
+
+const enableKeyboard = document.getElementById("{{ form.enableKeyboard.id_for_label }}");
+const enableClipboard = document.getElementById("{{ form.enableClipboard.id_for_label }}");
+const enableFileTransfer = document.getElementById("{{ form.enableFileTransfer.id_for_label }}");
+const enableAudio = document.getElementById("{{ form.enableAudio.id_for_label }}");
+const enableTCP = document.getElementById("{{ form.enableTCP.id_for_label }}");
+const enableRemoteRestart = document.getElementById("{{ form.enableRemoteRestart.id_for_label }}");
+const enableRecording = document.getElementById("{{ form.enableRecording.id_for_label }}");
+const enableBlockingInput = document.getElementById("{{ form.enableBlockingInput.id_for_label }}");
+const enableRemoteModi = document.getElementById("{{ form.enableRemoteModi.id_for_label }}");
+const enablePrinter = document.getElementById("{{ form.enablePrinter.id_for_label }}");
+const enableCamera = document.getElementById("{{ form.enableCamera.id_for_label }}");
+const enableTerminal = document.getElementById("{{ form.enableTerminal.id_for_label }}");
+
+document.getElementById("{{ form.permissionsType.id_for_label }}").addEventListener('change', function() {
+if (this.value === 'full') {
+[enableKeyboard, enableClipboard, enableFileTransfer, enableAudio, enableTCP,
+enableRemoteRestart, enableRecording, enableBlockingInput, enableRemoteModi,
+enablePrinter, enableCamera, enableTerminal].forEach(el => {
+el.checked = true;
+el.disabled = true;
+});
+} else if (this.value === 'view') {
+[enableKeyboard, enableClipboard, enableFileTransfer, enableAudio, enableTCP,
+enableRemoteRestart, enableRecording, enableBlockingInput, enableRemoteModi,
+enablePrinter, enableCamera, enableTerminal].forEach(el => {
+el.checked = false;
+el.disabled = true;
+});
+} else if (this.value === 'custom') {
+[enableKeyboard, enableClipboard, enableFileTransfer, enableAudio, enableTCP,
+enableRemoteRestart, enableRecording, enableBlockingInput, enableRemoteModi].forEach(el => {
+el.disabled = false;
+});
+enablePrinter.checked = false;
+enableCamera.checked = false;
+enableTerminal.checked = false;
+}
+});
+
+function previewImage(input, previewContainerId) {
+if (input.files && input.files[0]) {
+var reader = new FileReader();
+reader.onload = function(e) {
+var img = document.createElement('img');
+img.src = e.target.result;
+img.style.maxWidth = '300px';
+img.style.maxHeight = '60px';
+document.getElementById(previewContainerId).innerHTML = '';
+document.getElementById(previewContainerId).appendChild(img);
+};
+reader.readAsDataURL(input.files[0]);
+}
+}
+
+async function saveFormData() {
+const filename = document.getElementById("{{ form.exename.id_for_label }}").value;
+if (!filename) {
+document.getElementById("filenameError").textContent = "配置名称不能为空。";
+return;
+} else {
+document.getElementById("filenameError").textContent = "";
+}
+const formData = {};
+const form = document.getElementById("myForm");
+const formDataObj = new FormData(form);
+formDataObj.forEach((value, key) => {
+formData[key] = value;
+});
+const selectElements = form.querySelectorAll('select');
+selectElements.forEach(select => {
+formData[select.name] = select.value;
+});
+const checkboxRadioElements = form.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+checkboxRadioElements.forEach(input => {
+if (input.name) {
+if (input.type === 'radio') {
+if (input.checked) {
+formData[input.name] = input.value;
+}
+} else if (input.type === 'checkbox') {
+formData[input.name] = input.checked;
+}
+}
+});
+const iconPreview = document.getElementById('icon-preview');
+if (iconPreview.firstChild && iconPreview.firstChild.src.startsWith('data:image/png;base64')) {
+formData.iconfile = iconPreview.firstChild.src;
+} else {
+const iconFile = document.getElementById("{{ form.iconfile.id_for_label }}").files[0];
+if (iconFile) {
+formData.iconfile = await readFileAsBase64(iconFile);
+}
+}
+const logoPreview = document.getElementById('logo-preview');
+if (logoPreview.firstChild && logoPreview.firstChild.src.startsWith('data:image/png;base64')) {
+formData.logofile = logoPreview.firstChild.src;
+} else {
+const logoFile = document.getElementById("{{ form.logofile.id_for_label }}").files[0];
+if (logoFile) {
+formData.logofile = await readFileAsBase64(logoFile);
+}
+}
+const jsonData = JSON.stringify(formData, null, 2);
+const blob = new Blob([jsonData], { type: "application/json" });
+const url = URL.createObjectURL(blob);
+const a = document.createElement("a");
+a.href = url;
+a.download = filename + ".json";
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+URL.revokeObjectURL(url);
+}
+
+async function readFileAsBase64(file) {
+return new Promise((resolve, reject) => {
+const reader = new FileReader();
+reader.onload = (event) => resolve(event.target.result);
+reader.onerror = (error) => reject(error);
+reader.readAsDataURL(file);
+});
+}
+
+function loadFormData() {
+const fileInput = document.getElementById("fileInput");
+fileInput.click();
+fileInput.addEventListener("change", (event) => {
+const file = event.target.files[0];
+if (file) {
+const reader = new FileReader();
+reader.onload = (e) => {
+try {
+const formData = JSON.parse(e.target.result);
+for (const key in formData) {
+const elements = document.querySelectorAll(`[name="${key}"], [id="${key}"]`);
+if (elements.length > 0) {
+elements.forEach(element => {
+if (element.type === 'radio') {
+if (element.value === String(formData[key])) {
+element.checked = true;
+}
+} else if (element.type === 'checkbox') {
+element.checked = Boolean(formData[key]);
+} else if (element.type !== 'file') {
+element.value = formData[key];
+}
+if (key === 'iconfile' && formData[key]) {
+document.getElementById('icon-preview').innerHTML = `<img src="${formData[key]}" style="max-width: 300px; max-height: 60px;">`;
+}
+if (key === 'logofile' && formData[key]) {
+document.getElementById('logo-preview').innerHTML = `<img src="${formData[key]}" style="max-width: 300px; max-height: 60px;">`;
+}
+});
+}
+}
+} catch (error) {
+alert("加载配置失败：无效的 JSON 文件。");
+}
+};
+reader.readAsText(file);
+}
+});
+}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const uiModeCheckbox = document.getElementById('{{ form.ui_mode.id_for_label }}');
+    const targetFields = [
+        'addcopy'
+    ].map(name => document.getElementById('{{ form.addcopy.id_for_label }}'));
+
+    function toggleDependentCheckboxes() {
+        const isEnabled = uiModeCheckbox.checked;
+        targetFields.forEach(checkbox => {
+            if (checkbox) {
+                checkbox.disabled = !isEnabled;
+                if (!isEnabled) {
+                    checkbox.checked = false;
+                }
             }
+        });
+    }
 
-            const icon = saveLoadTitle.querySelector("i");
-            icon.classList.toggle("fa-chevron-down");
-            icon.classList.toggle("fa-chevron-up");
+    toggleDependentCheckboxes();
+
+    if (uiModeCheckbox) {
+        uiModeCheckbox.addEventListener('change', toggleDependentCheckboxes);
+    }
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const directionRadios = document.querySelectorAll('[name="direction"]');
+
+    if (!directionRadios.length) {
+        console.error('未找到 direction 的 radio 按钮');
+        return;
+    }
+
+    const targetFields = [
+        document.getElementById('{{ form.viewOnly.id_for_label }}'),
+        document.getElementById('{{ form.cycleMonitor.id_for_label }}'),
+        document.getElementById('{{ form.xOffline.id_for_label }}'),
+        document.getElementById('{{ form.hide_chat_voice.id_for_label }}'),
+        document.getElementById('{{ form.privacy_mode.id_for_label }}'),
+        document.getElementById('{{ form.collapse_toolbar.id_for_label }}'),
+        document.getElementById('{{ form.hide_username_on_card.id_for_label }}')
+    ].filter(el => el !== null);
+
+    function toggleDependentFields() {
+        const isIncomingSelected = Array.from(directionRadios).some(radio => {
+            return radio.checked && radio.value === 'incoming';
         });
 
-        async function saveFormData() {
-            const filename = document.getElementById("{{ form.exename.id_for_label }}").value;
-            if (!filename) {
-                document.getElementById("filenameError").textContent = "Filename is required.";
-                return;
-            } else {
-                document.getElementById("filenameError").textContent = "";
+        targetFields.forEach(field => {
+            field.disabled = isIncomingSelected;
+            if (isIncomingSelected && field.type === 'checkbox') {
+                field.checked = false;
             }
+        });
+    }
 
-            const formData = {};
-            const form = document.getElementById("myForm"); // Get the form element
+    toggleDependentFields();
 
-            // 1. Use FormData for robust data collection (handles most input types):
-            const formDataObj = new FormData(form);  // Create a FormData object
+    directionRadios.forEach(radio => {
+        radio.addEventListener('change', toggleDependentFields);
+    });
+});
+</script>
 
-            formDataObj.forEach((value, key) => {
-                formData[key] = value; // Add each key/value pair to the formData object.
-            });
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const downloadLinkInput = document.getElementById('{{ form.downloadLink.id_for_label }}');
+    const updateLinkInput = document.getElementById('{{ form.updateLink.id_for_label }}');
+    const disableCheckUpdateCheckbox = document.getElementById('{{ form.disable_check_update.id_for_label }}');
 
-            // 2. Handle select elements separately (more reliable):
-            const selectElements = form.querySelectorAll('select');
-            selectElements.forEach(select => {
-                formData[select.name] = select.value;
-            });
+    function isBlank(str) {
+        return !str || str.trim() === '';
+    }
 
-            // 3. Handle checkboxes and radio buttons (important!):
-            const checkboxRadioElements = form.querySelectorAll('input[type="checkbox"], input[type="radio"]');
-            checkboxRadioElements.forEach(input => {
-                if (input.name) { //only add to form data if it has a name
-                    if (input.checked) {
-                        formData[input.name] = input.value;
-                    } else if (!formData.hasOwnProperty(input.name) && input.type === 'checkbox') { //if it's a checkbox and it's not checked, add it as false
-                        formData[input.name] = false;
-                    }
-                }
-            });
+    function updateDisableCheckUpdateState() {
+        if (!disableCheckUpdateCheckbox) return;
 
-            // 4. Handle icon and logo
-            const iconPreview = document.getElementById('icon-preview');
-            if (iconPreview.firstChild && iconPreview.firstChild.src.startsWith('data:image/png;base64')) {
-                formData.iconfile = iconPreview.firstChild.src;  // Use existing base64
-            } else { //if it's a file upload
-                const iconFile = document.getElementById("{{ form.iconfile.id_for_label }}").files[0];
-                if (iconFile) {
-                    formData.iconfile = await readFileAsBase64(iconFile);
-                }
-            }
+        const hasCustomDownload = !isBlank(downloadLinkInput?.value);
+        const hasCustomUpdate = !isBlank(updateLinkInput?.value);
 
-            const logoPreview = document.getElementById('logo-preview');
-            if (logoPreview.firstChild && logoPreview.firstChild.src.startsWith('data:image/png;base64')) {
-                formData.logofile = logoPreview.firstChild.src; // Use existing base64
-            } else { //if it's a file upload
-                const logoFile = document.getElementById("{{ form.logofile.id_for_label }}").files[0];
-                if (logoFile) {
-                    formData.logofile = await readFileAsBase64(logoFile);
-                }
-            }
-
-            const privacyPreview = document.getElementById('privacy-preview');
-            if (privacyPreview.firstChild && logoPrprivacyPrevieweview.firstChild.src.startsWith('data:image/png;base64')) {
-                formData.privacyfile = privacyPreview.firstChild.src; // Use existing base64
-            } else { //if it's a file upload
-                const privacyFile = document.getElementById("{{ form.privacyfile.id_for_label }}").files[0];
-                if (privacyFile) {
-                    formData.privacyfile = await readFileAsBase64(privacyFile);
-                }
-            }
-
-            const jsonData = JSON.stringify(formData, null, 2);
-            const blob = new Blob([jsonData], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = filename + ".json";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+        if (hasCustomDownload || hasCustomUpdate) {
+            disableCheckUpdateCheckbox.checked = false;
+            disableCheckUpdateCheckbox.disabled = true;
+        } else {
+            disableCheckUpdateCheckbox.disabled = false;
         }
+    }
 
-        async function readFileAsBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = (event) => resolve(event.target.result);
-                reader.onerror = (error) => reject(error);
-                reader.readAsDataURL(file);
-            });
-        }
+    updateDisableCheckUpdateState();
 
-
-        function loadFormData() {
-            const fileInput = document.getElementById("fileInput");
-            fileInput.click();
-
-            fileInput.addEventListener("change", (event) => {
-                const file = event.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        try {
-                            const formData = JSON.parse(e.target.result);
-                            for (const key in formData) {
-                                // More robust selector: checks for name OR id
-                                const elements = document.querySelectorAll(`[name="${key}"], [id="${key}"]`);
-
-                                if (elements.length > 0) { // Check if any element(s) exist
-                                    elements.forEach(element => { // Loop through all matching elements (important for radios)
-                                        if (element.type === 'radio') {
-                                            if (element.value === String(formData[key])) { // Compare value, crucial for radios
-                                                element.checked = true;
-                                            } else {
-                                                element.checked = false; // Uncheck others in the group
-                                            }
-                                        } else if (element.type === 'checkbox') {
-                                            element.checked = formData[key];
-                                        } else if (element.type !== 'file') {
-                                            element.value = formData[key];
-                                        }
-
-                                        // Handle image previews (as before)
-                                        if (key === 'iconfile' && formData[key]) {
-                                            document.getElementById('id_iconbase64').value = formData[key];
-                                            document.getElementById('icon-preview').innerHTML = `<img src="${formData[key]}" style="max-width: 300px; max-height: 60px;">`;
-                                        }
-                                        if (key === 'logofile' && formData[key]) {
-                                            document.getElementById('id_logobase64').value = formData[key];
-                                            document.getElementById('logo-preview').innerHTML = `<img src="${formData[key]}" style="max-width: 300px; max-height: 60px;">`;
-                                        }
-                                        if (key === 'privacyfile' && formData[key]) {
-                                            document.getElementById('id_privacybase64').value = formData[key];
-                                            document.getElementById('privacy-preview').innerHTML = `<img src="${formData[key]}" style="max-width: 300px; max-height: 60px;">`;
-                                        }
-                                    });
-                                }
-                            }
-                        } catch (error) {
-                            alert("Error loading data. Invalid JSON file.");
-                        }
-                    };
-                    reader.readAsText(file);
-                }
-            });
-        }
-    </script>
+    downloadLinkInput?.addEventListener('input', updateDisableCheckUpdateState);
+    updateLinkInput?.addEventListener('input', updateDisableCheckUpdateState);
+});
+</script>
 </body>
 </html>

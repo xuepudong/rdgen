@@ -145,18 +145,10 @@ jobs:
           data: '{"uuid": "${{ env.uuid }}", "status": "5% complete"}'
 
       - name: Checkout source code
-        if: ${{ env.VERSION != 'master' }}
         uses: actions/checkout@v4
         with:
-          repository: rustdesk/rustdesk
-          ref: refs/tags/${{ env.VERSION }}
-          submodules: recursive
-
-      - name: Checkout source code
-        if: ${{ env.VERSION == 'master' }}
-        uses: actions/checkout@v4
-        with:
-          repository: rustdesk/rustdesk
+          repository: xuepudong/RuijieDesk
+          ref: ${{ env.VERSION == 'master' && 'master' || (env.VERSION == '1.4.5' && 'master' || format('refs/tags/{0}', env.VERSION)) }}
           submodules: recursive
 
       - name: Install ImageMagick on Windows

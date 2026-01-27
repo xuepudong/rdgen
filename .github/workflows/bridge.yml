@@ -31,18 +31,10 @@ jobs:
             }
     steps:
       - name: Checkout source code
-        if: ${{ inputs.version != 'master' }}
         uses: actions/checkout@v4
         with:
-          repository: rustdesk/rustdesk
-          ref: refs/tags/${{ inputs.version }}
-          submodules: recursive
-        
-      - name: Checkout source code
-        if: ${{ inputs.version == 'master' }}
-        uses: actions/checkout@v4
-        with:
-          repository: rustdesk/rustdesk
+          repository: xuepudong/RuijieDesk
+          ref: ${{ inputs.version == 'master' && 'master' || (inputs.version == '1.4.5' && 'master' || format('refs/tags/{0}', inputs.version)) }}
           submodules: recursive
 
       - name: Install prerequisites

@@ -23,16 +23,19 @@ def generator_view(request):
         if form.is_valid():
             platform = form.cleaned_data['platform']
             version = form.cleaned_data['version']
+            ui_mode = form.cleaned_data['ui_mode']
             delayFix = form.cleaned_data['delayFix']
             cycleMonitor = form.cleaned_data['cycleMonitor']
             xOffline = form.cleaned_data['xOffline']
             hidecm = form.cleaned_data['hidecm']
             removeNewVersionNotif = form.cleaned_data['removeNewVersionNotif']
             server = form.cleaned_data['serverIP']
-            key = form.cleaned_data['key']
+            # 使用 RS_PUB_KEY 作为密钥字段
+            key = form.cleaned_data['RS_PUB_KEY']
             apiServer = form.cleaned_data['apiServer']
             urlLink = form.cleaned_data['urlLink']
             downloadLink = form.cleaned_data['downloadLink']
+            updateLink = form.cleaned_data['updateLink']
             if not server:
                 server = 'rs-ny.rustdesk.com' #default rustdesk server
             if not key:
@@ -46,10 +49,11 @@ def generator_view(request):
             direction = form.cleaned_data['direction']
             installation = form.cleaned_data['installation']
             settings = form.cleaned_data['settings']
+            filename = form.cleaned_data['exename']
             appname = form.cleaned_data['appname']
             if not appname:
-                appname = "rustdesk"
-            filename = form.cleaned_data['exename']
+                # 如果应用名称为空，使用配置名称
+                appname = filename if filename else "rustdesk"
             compname = form.cleaned_data['compname']
             if not compname:
                 compname = "Purslane Ltd"
@@ -58,14 +62,28 @@ def generator_view(request):
                 androidappid = "com.carriez.flutter_hbb"
             compname = compname.replace("&","\\&")
             permPass = form.cleaned_data['permanentPassword']
+            unlockPin = form.cleaned_data['unlockPin']
             theme = form.cleaned_data['theme']
             themeDorO = form.cleaned_data['themeDorO']
+            image_quality = form.cleaned_data['image_quality']
+            custom_fps = form.cleaned_data['custom_fps']
             #runasadmin = form.cleaned_data['runasadmin']
             passApproveMode = form.cleaned_data['passApproveMode']
             denyLan = form.cleaned_data['denyLan']
             enableDirectIP = form.cleaned_data['enableDirectIP']
             #ipWhitelist = form.cleaned_data['ipWhitelist']
             autoClose = form.cleaned_data['autoClose']
+
+            # Security Settings隐藏选项
+            hideSecuritySettings = form.cleaned_data['hideSecuritySettings']
+            hideNetworkSettings = form.cleaned_data['hideNetworkSettings']
+            hideServerSettings = form.cleaned_data['hideServerSettings']
+            hideRemotePrinterSettings = form.cleaned_data['hideRemotePrinterSettings']
+            hide_account = form.cleaned_data['hide_account']
+            remove_preset_password_warning = form.cleaned_data['remove_preset_password_warning']
+            hideProxySettings = form.cleaned_data['hideProxySettings']
+            hideWebsocketSettings = form.cleaned_data['hideWebsocketSettings']
+
             permissionsDorO = form.cleaned_data['permissionsDorO']
             permissionsType = form.cleaned_data['permissionsType']
             enableKeyboard = form.cleaned_data['enableKeyboard']
@@ -83,6 +101,34 @@ def generator_view(request):
             enablePrinter = form.cleaned_data['enablePrinter']
             enableCamera = form.cleaned_data['enableCamera']
             enableTerminal = form.cleaned_data['enableTerminal']
+
+            # 主控端功能
+            hide_chat_voice = form.cleaned_data['hide_chat_voice']
+            viewOnly = form.cleaned_data['viewOnly']
+            collapse_toolbar = form.cleaned_data['collapse_toolbar']
+            privacy_mode = form.cleaned_data['privacy_mode']
+            hide_username_on_card = form.cleaned_data['hide_username_on_card']
+
+            # 被控端功能
+            hideTray = form.cleaned_data['hideTray']
+            hidePassword = form.cleaned_data['hidePassword']
+            hideMenuBar = form.cleaned_data['hideMenuBar']
+            hideQuit = form.cleaned_data['hideQuit']
+            addcopy = form.cleaned_data['addcopy']
+            applyprivacy = form.cleaned_data['applyprivacy']
+            passpolicy = form.cleaned_data['passpolicy']
+            allowHostnameAsId = form.cleaned_data['allowHostnameAsId']
+            hideService_Start_Stop = form.cleaned_data['hideService_Start_Stop']
+
+            # 通用功能
+            disable_check_update = form.cleaned_data['disable_check_update']
+            no_uninstall = form.cleaned_data['no_uninstall']
+            disable_install = form.cleaned_data['disable_install']
+            allowD3dRender = form.cleaned_data['allowD3dRender']
+            use_texture_render = form.cleaned_data['use_texture_render']
+            pre_elevate_service = form.cleaned_data['pre_elevate_service']
+            sync_init_clipboard = form.cleaned_data['sync_init_clipboard']
+            hide_powered_by_me = form.cleaned_data['hide_powered_by_me']
 
             if all(char.isascii() for char in filename):
                 filename = re.sub(r'[^\w\s-]', '_', filename).strip()
@@ -116,15 +162,30 @@ def generator_view(request):
                 logolink_uuid = "false"
                 logolink_file = "false"
             try:
-                privacyfile = form.cleaned_data.get('privacyfile')
-                if not privacyfile:
-                    privacyfile = form.cleaned_data.get('privacybase64')
-                privacylink_url, privacylink_uuid, privacylink_file = save_png(privacyfile,myuuid,full_url,"privacy.png")
+                # 使用 privacy_wallpaper 作为隐私图片
+                privacy_wallpaper = form.cleaned_data.get('privacy_wallpaper')
+                if not privacy_wallpaper:
+                    privacy_wallpaper = form.cleaned_data.get('privacybase64')
+
+                if privacy_wallpaper:
+                    # 保存为两个用途：privacy.png (旧组件) 和 privacy_wallpaper.png (新功能)
+                    privacylink_url, privacylink_uuid, privacylink_file = save_png(privacy_wallpaper,myuuid,full_url,"privacy.png")
+                    privacy_wallpaper_url, privacy_wallpaper_uuid, privacy_wallpaper_file = save_png(privacy_wallpaper,myuuid,full_url,"privacy_wallpaper.png")
+                else:
+                    privacylink_url = "false"
+                    privacylink_uuid = "false"
+                    privacylink_file = "false"
+                    privacy_wallpaper_url = "false"
+                    privacy_wallpaper_uuid = "false"
+                    privacy_wallpaper_file = "false"
             except:
-                print("failed to get logo")
+                print("failed to get privacy wallpaper")
                 privacylink_url = "false"
                 privacylink_uuid = "false"
                 privacylink_file = "false"
+                privacy_wallpaper_url = "false"
+                privacy_wallpaper_uuid = "false"
+                privacy_wallpaper_file = "false"
 
             ###create the custom.txt json here and send in as inputs below
             decodedCustom = {}
@@ -134,12 +195,14 @@ def generator_view(request):
                 decodedCustom['disable-installation'] = 'Y'
             if settings == "settingsN":
                 decodedCustom['disable-settings'] = 'Y'
-            if appname.upper != "rustdesk".upper and appname != "":
+            if appname.upper() != "RUSTDESK" and appname != "":
                 decodedCustom['app-name'] = appname
             decodedCustom['override-settings'] = {}
             decodedCustom['default-settings'] = {}
             if permPass != "":
                 decodedCustom['password'] = permPass
+            if unlockPin != "":
+                decodedCustom['unlock-pin'] = unlockPin
             if theme != "system":
                 if themeDorO == "default":
                     if platform == "windows-x86":
@@ -151,6 +214,13 @@ def generator_view(request):
                         decodedCustom['override-settings']['allow-darktheme'] = 'Y' if theme == "dark" else 'N'
                     else:
                         decodedCustom['override-settings']['theme'] = theme
+
+            # 图像质量和帧率设置
+            if image_quality:
+                decodedCustom['override-settings']['image-quality'] = image_quality
+            if custom_fps and custom_fps != '30':
+                decodedCustom['override-settings']['custom-fps'] = custom_fps
+
             decodedCustom['enable-lan-discovery'] = 'N' if denyLan else 'Y'
             #decodedCustom['direct-server'] = 'Y' if enableDirectIP else 'N'
             decodedCustom['allow-auto-disconnect'] = 'Y' if autoClose else 'N'
@@ -192,6 +262,74 @@ def generator_view(request):
                 decodedCustom['override-settings']['enable-remote-printer'] = 'Y' if enablePrinter else 'N'
                 decodedCustom['override-settings']['enable-camera'] = 'Y' if enableCamera else 'N'
                 decodedCustom['override-settings']['enable-terminal'] = 'Y' if enableTerminal else 'N'
+
+            # 安全设置隐藏选项（BUILDIN_SETTINGS）
+            if hideSecuritySettings:
+                decodedCustom['override-settings']['hide-security-settings'] = 'Y'
+            if hideNetworkSettings:
+                decodedCustom['override-settings']['hide-network-settings'] = 'Y'
+            if hideServerSettings:
+                decodedCustom['override-settings']['hide-server-settings'] = 'Y'
+            if hideRemotePrinterSettings:
+                decodedCustom['override-settings']['hide-remote-printer-settings'] = 'Y'
+            if hide_account:
+                decodedCustom['override-settings']['hide-account'] = 'Y'
+            if remove_preset_password_warning:
+                decodedCustom['override-settings']['remove-preset-password-warning'] = 'Y'
+            if hideProxySettings:
+                decodedCustom['override-settings']['hide-proxy-settings'] = 'Y'
+            if hideWebsocketSettings:
+                decodedCustom['override-settings']['hide-websocket-settings'] = 'Y'
+
+            # 主控端功能
+            if hide_chat_voice:
+                decodedCustom['override-settings']['hide-chat-voice'] = 'Y'
+            if viewOnly:
+                decodedCustom['override-settings']['view-only'] = 'Y'
+            if collapse_toolbar:
+                decodedCustom['default-settings']['collapse-toolbar'] = 'Y'
+            if privacy_mode:
+                decodedCustom['default-settings']['privacy-mode'] = 'Y'
+            if hide_username_on_card:
+                decodedCustom['override-settings']['hide-username-on-card'] = 'Y'
+
+            # 被控端功能
+            if hideTray:
+                decodedCustom['override-settings']['hide-tray'] = 'Y'
+            if hidePassword:
+                decodedCustom['override-settings']['hide-password'] = 'Y'
+            if hideMenuBar:
+                decodedCustom['override-settings']['hide-menu-bar'] = 'Y'
+            if hideQuit:
+                decodedCustom['override-settings']['hide-quit'] = 'Y'
+            if addcopy:
+                decodedCustom['override-settings']['add-copy'] = 'Y'
+            if applyprivacy:
+                decodedCustom['override-settings']['apply-privacy'] = 'Y'
+            if passpolicy:
+                decodedCustom['override-settings']['allow-simple-password'] = 'Y'
+            if allowHostnameAsId:
+                decodedCustom['override-settings']['allow-hostname-as-id'] = 'Y'
+            if hideService_Start_Stop:
+                decodedCustom['override-settings']['hide-service-start-stop'] = 'Y'
+
+            # 通用功能
+            if disable_check_update:
+                decodedCustom['override-settings']['disable-check-update'] = 'Y'
+            if no_uninstall:
+                decodedCustom['override-settings']['no-uninstall'] = 'Y'
+            if disable_install:
+                decodedCustom['override-settings']['disable-install'] = 'Y'
+            if allowD3dRender:
+                decodedCustom['default-settings']['allow-d3d-render'] = 'Y'
+            if use_texture_render:
+                decodedCustom['default-settings']['use-texture-render'] = 'Y'
+            if pre_elevate_service:
+                decodedCustom['override-settings']['pre-elevate-service'] = 'Y'
+            if sync_init_clipboard:
+                decodedCustom['default-settings']['sync-init-clipboard'] = 'Y'
+            if hide_powered_by_me:
+                decodedCustom['override-settings']['hide-powered-by-me'] = 'Y'
 
             for line in defaultManual.splitlines():
                 k, value = line.split('=')
@@ -236,7 +374,7 @@ def generator_view(request):
             else:
                 url = 'https://api.github.com/repos/'+_settings.GHUSER+'/'+_settings.REPONAME+'/actions/workflows/generator-windows.yml/dispatches'
 
-            #url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rustdesk/actions/workflows/test.yml/dispatches'  
+            #url = 'https://api.github.com/repos/'+_settings.GHUSER+'/rustdesk/actions/workflows/test.yml/dispatches'
             inputs_raw = {
                 "server":server,
                 "key":key,
@@ -252,10 +390,14 @@ def generator_view(request):
                 "privacylink_url":privacylink_url,
                 "privacylink_uuid":privacylink_uuid,
                 "privacylink_file":privacylink_file,
+                "privacy_wallpaper_url":privacy_wallpaper_url,
+                "privacy_wallpaper_uuid":privacy_wallpaper_uuid,
+                "privacy_wallpaper_file":privacy_wallpaper_file,
                 "appname":appname,
                 "genurl":_settings.GENURL,
                 "urlLink":urlLink,
                 "downloadLink":downloadLink,
+                "updateLink":updateLink if updateLink else "",
                 "delayFix": 'true' if delayFix else 'false',
                 "rdgen":'true',
                 "cycleMonitor": 'true' if cycleMonitor else 'false',
@@ -263,7 +405,9 @@ def generator_view(request):
                 "removeNewVersionNotif": 'true' if removeNewVersionNotif else 'false',
                 "compname": compname,
                 "androidappid":androidappid,
-                "filename":filename
+                "filename":filename,
+                "ui_mode": 'true' if ui_mode else 'false',
+                "hide_powered_by_me": 'true' if hide_powered_by_me else 'false'
             }
 
             temp_json_path = f"data_{uuid.uuid4()}.json"

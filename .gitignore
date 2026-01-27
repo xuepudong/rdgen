@@ -2,3 +2,22 @@
 db.sqlite3
 gunicorn.conf
 .venv
+
+# 敏感文件
+.env
+*.json
+
+# 系统文件
+.DS_Store
+
+# 生成的文件和临时目录
+exe/
+png/
+temp_zips/
+RuijieDesk-SOS/
+
+# 备份文件
+*.bak
+*.html.bak
+test_config.py
+view-source.html
