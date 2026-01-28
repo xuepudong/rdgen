@@ -207,6 +207,9 @@ jobs:
           fi
           find ./src/lang -name "*.rs" -exec sed -i -e 's|RustDesk|${{ env.appname }}|' {} \;
           sed -i -e 's|RustDesk|${{ env.appname }}|' ./res/msi/Package/License.rtf
+          # ./flutter/lib/desktop/pages/desktop_home_page.dart
+          # change window title from "Your Desktop" to custom appname
+          sed -i -e 's|translate("Your Desktop")|appName|' ./flutter/lib/desktop/pages/desktop_home_page.dart
 
       - name: fix registry if appname has a space
         if: contains(env.appname, ' ')
