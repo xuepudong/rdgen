@@ -1187,7 +1187,7 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <script>
-// 当选择"仅被控"时自动设置并锁定指定选项
+// 根据客户端类型自动设置并锁定指定选项
 document.addEventListener('DOMContentLoaded', function () {
     const directionRadios = document.querySelectorAll('[name="direction"]');
 
@@ -1214,9 +1214,25 @@ document.addEventListener('DOMContentLoaded', function () {
     const hideProxySettings = document.getElementById('{{ form.hideProxySettings.id_for_label }}');
     const hideWebsocketSettings = document.getElementById('{{ form.hideWebsocketSettings.id_for_label }}');
 
+    // 主控端功能复选框
+    const cycleMonitor = document.getElementById('{{ form.cycleMonitor.id_for_label }}');
+    const xOffline = document.getElementById('{{ form.xOffline.id_for_label }}');
+    const hide_chat_voice = document.getElementById('{{ form.hide_chat_voice.id_for_label }}');
+    const viewOnly = document.getElementById('{{ form.viewOnly.id_for_label }}');
+    const collapse_toolbar = document.getElementById('{{ form.collapse_toolbar.id_for_label }}');
+    const privacy_mode = document.getElementById('{{ form.privacy_mode.id_for_label }}');
+    const hide_username_on_card = document.getElementById('{{ form.hide_username_on_card.id_for_label }}');
+
     // 被控端功能复选框
-    const addcopy = document.getElementById('{{ form.addcopy.id_for_label }}');
+    const hideTray = document.getElementById('{{ form.hideTray.id_for_label }}');
+    const hidePassword = document.getElementById('{{ form.hidePassword.id_for_label }}');
     const hideMenuBar = document.getElementById('{{ form.hideMenuBar.id_for_label }}');
+    const hideQuit = document.getElementById('{{ form.hideQuit.id_for_label }}');
+    const addcopy = document.getElementById('{{ form.addcopy.id_for_label }}');
+    const applyprivacy = document.getElementById('{{ form.applyprivacy.id_for_label }}');
+    const passpolicy = document.getElementById('{{ form.passpolicy.id_for_label }}');
+    const allowHostnameAsId = document.getElementById('{{ form.allowHostnameAsId.id_for_label }}');
+    const hideService_Start_Stop = document.getElementById('{{ form.hideService_Start_Stop.id_for_label }}');
 
     // 通用功能复选框
     const no_uninstall = document.getElementById('{{ form.no_uninstall.id_for_label }}');
@@ -1227,13 +1243,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const sync_init_clipboard = document.getElementById('{{ form.sync_init_clipboard.id_for_label }}');
     const hide_powered_by_me = document.getElementById('{{ form.hide_powered_by_me.id_for_label }}');
     const removeNewVersionNotif = document.getElementById('{{ form.removeNewVersionNotif.id_for_label }}');
+    const disable_check_update = document.getElementById('{{ form.disable_check_update.id_for_label }}');
 
-    function handleIncomingModeSettings() {
-        const isIncoming = Array.from(directionRadios).some(radio => {
-            return radio.checked && radio.value === 'incoming';
-        });
+    function handleDirectionModeSettings() {
+        const selectedDirection = Array.from(directionRadios).find(radio => radio.checked)?.value;
 
-        if (isIncoming) {
+        if (selectedDirection === 'incoming') {
+            // ========== 仅被控模式 ==========
+
             // 通用设置
             if (installationSelect) {
                 installationSelect.value = 'installationN';
@@ -1263,7 +1280,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // 权限控制
             if (permissionsType) {
                 permissionsType.value = 'full';
-                permissionsType.dispatchEvent(new Event('change')); // 触发权限预设的变化事件
+                permissionsType.dispatchEvent(new Event('change'));
             }
             if (permissionsDorO) {
                 permissionsDorO.value = 'override';
@@ -1286,18 +1303,101 @@ document.addEventListener('DOMContentLoaded', function () {
                     checkbox.disabled = true;
                 }
             });
+
+        } else if (selectedDirection === 'outgoing') {
+            // ========== 仅主控模式 ==========
+
+            // 通用设置
+            if (installationSelect) {
+                installationSelect.value = 'installationY';
+                installationSelect.disabled = false;
+            }
+            if (settingsSelect) {
+                settingsSelect.value = 'settingsY';
+                settingsSelect.disabled = false;
+            }
+
+            // 安全设置 - 预设密码清空
+            if (permanentPassword) {
+                permanentPassword.value = '';
+                permanentPassword.disabled = false;
+            }
+
+            // 安全设置 - 复选框 (不包括hide_account)
+            [denyLan, hideSecuritySettings, hideNetworkSettings, hideServerSettings,
+             hideRemotePrinterSettings, remove_preset_password_warning,
+             hideProxySettings, hideWebsocketSettings].forEach(checkbox => {
+                if (checkbox) {
+                    checkbox.checked = true;
+                    checkbox.disabled = false;
+                }
+            });
+            // hide_account不自动勾选
+            if (hide_account) {
+                hide_account.checked = false;
+                hide_account.disabled = false;
+            }
+
+            // 权限控制
+            if (permissionsType) {
+                permissionsType.value = 'full';
+                permissionsType.dispatchEvent(new Event('change'));
+            }
+            if (permissionsDorO) {
+                permissionsDorO.value = 'override';
+            }
+
+            // 被控端功能 - 全部取消勾选
+            [hideTray, hidePassword, hideMenuBar, hideQuit, addcopy, applyprivacy,
+             passpolicy, allowHostnameAsId, hideService_Start_Stop].forEach(checkbox => {
+                if (checkbox) {
+                    checkbox.checked = false;
+                    checkbox.disabled = false;
+                }
+            });
+
+            // 主控端功能 - 锁定cycleMonitor和collapse_toolbar
+            if (cycleMonitor) {
+                cycleMonitor.checked = true;
+                cycleMonitor.disabled = true;
+            }
+            if (collapse_toolbar) {
+                collapse_toolbar.checked = true;
+                collapse_toolbar.disabled = true;
+            }
+            // 其他主控端功能不锁定
+            [xOffline, hide_chat_voice, viewOnly, privacy_mode, hide_username_on_card].forEach(checkbox => {
+                if (checkbox) {
+                    checkbox.disabled = false;
+                }
+            });
+
+            // 通用功能 - 全部勾选
+            [no_uninstall, disable_install, allowD3dRender, use_texture_render,
+             pre_elevate_service, sync_init_clipboard, hide_powered_by_me,
+             removeNewVersionNotif, disable_check_update].forEach(checkbox => {
+                if (checkbox) {
+                    checkbox.checked = true;
+                    checkbox.disabled = false;
+                }
+            });
+
         } else {
-            // 恢复正常状态
+            // ========== 双向控制模式 - 恢复正常状态 ==========
             if (installationSelect) installationSelect.disabled = false;
             if (settingsSelect) settingsSelect.disabled = false;
             if (permanentPassword) permanentPassword.disabled = false;
 
+            // 解锁所有复选框
             [denyLan, hideSecuritySettings, hideNetworkSettings, hideServerSettings,
              hideRemotePrinterSettings, hide_account, remove_preset_password_warning,
-             hideProxySettings, hideWebsocketSettings, addcopy, hideMenuBar,
+             hideProxySettings, hideWebsocketSettings, cycleMonitor, xOffline,
+             hide_chat_voice, viewOnly, collapse_toolbar, privacy_mode,
+             hide_username_on_card, hideTray, hidePassword, hideMenuBar, hideQuit,
+             addcopy, applyprivacy, passpolicy, allowHostnameAsId, hideService_Start_Stop,
              no_uninstall, disable_install, allowD3dRender, use_texture_render,
              pre_elevate_service, sync_init_clipboard, hide_powered_by_me,
-             removeNewVersionNotif].forEach(checkbox => {
+             removeNewVersionNotif, disable_check_update].forEach(checkbox => {
                 if (checkbox) {
                     checkbox.disabled = false;
                 }
@@ -1306,11 +1406,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // 初始化时执行一次
-    handleIncomingModeSettings();
+    handleDirectionModeSettings();
 
     // 监听 direction 变化
     directionRadios.forEach(radio => {
-        radio.addEventListener('change', handleIncomingModeSettings);
+        radio.addEventListener('change', handleDirectionModeSettings);
     });
 });
 </script>
