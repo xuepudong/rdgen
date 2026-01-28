@@ -50,10 +50,13 @@ def generator_view(request):
             installation = form.cleaned_data['installation']
             settings = form.cleaned_data['settings']
             filename = form.cleaned_data['exename']
-            appname = form.cleaned_data['appname']
-            if not appname:
-                # 如果应用名称为空，使用配置名称
-                appname = filename if filename else "rustdesk"
+            # 根据direction自动设置应用名称
+            if direction == 'incoming':
+                appname = "小锐云桥(被控端)"
+            elif direction == 'outgoing':
+                appname = "小锐云桥(工程师端)"
+            else:  # both
+                appname = "YIYUANDesk"
             compname = form.cleaned_data['compname']
             if not compname:
                 compname = "Purslane Ltd"
@@ -135,8 +138,9 @@ def generator_view(request):
                 filename = filename.replace(" ","_")
             else:
                 filename = "rustdesk"
-            if not all(char.isascii() for char in appname):
-                appname = "rustdesk"
+            # 注释掉appname的ASCII检查，因为我们现在使用预定义的中文名称
+            # if not all(char.isascii() for char in appname):
+            #     appname = "rustdesk"
             myuuid = str(uuid.uuid4())
             protocol = _settings.PROTOCOL
             host = request.get_host()

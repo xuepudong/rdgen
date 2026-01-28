@@ -11,7 +11,7 @@ class GenerateForm(forms.Form):
 
     #General
     exename = forms.CharField(label="配置名称", required=True)
-    appname = forms.CharField(label="应用名称", required=False)
+    appname = forms.CharField(label="应用名称", required=False, widget=forms.HiddenInput())
     direction = forms.ChoiceField(widget=forms.RadioSelect, choices=[
         ('incoming', '仅被控'),
         ('outgoing', '仅主控'),
