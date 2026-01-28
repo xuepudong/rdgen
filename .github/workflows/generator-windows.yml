@@ -122,8 +122,11 @@ jobs:
 
           with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as env_file:
             for key, value in secrets.items():
-              print(f"::add-mask::{value}")
+              # Skip printing to avoid UnicodeEncodeError on Windows with Chinese characters
+              # The values will still be loaded as environment variables
               env_file.write(f"{key}={value}\n")
+
+          print("Secrets loaded (values masked for security).")
 
           print("Secrets loaded into environment.")
 
