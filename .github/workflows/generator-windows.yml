@@ -210,6 +210,10 @@ jobs:
           # ./flutter/lib/desktop/pages/desktop_home_page.dart
           # change window title from "Your Desktop" to custom appname
           sed -i -e 's|translate("Your Desktop")|appName|' ./flutter/lib/desktop/pages/desktop_home_page.dart
+          # Replace desk_tip with custom message
+          sed -i -e 's|你的桌面可以通过下面的 ID 和密码访问。|请您提供以下 ID 和密码给工程师，以便为您远程协助解决问题。|' ./src/lang/cn.rs
+          sed -i -e 's|你的桌面可以通过下面的 ID 和密码访问。|请您提供以下 ID 和密码给工程师，以便为您远程协助解决问题。|' ./src/lang/tw.rs
+          sed -i -e 's|你的桌面可以通过下面的 ID 和密码访问。|请您提供以下 ID 和密码给工程师，以便为您远程协助解决问题。|' ./src/lang/sc.rs
 
       - name: fix registry if appname has a space
         if: contains(env.appname, ' ')
