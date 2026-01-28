@@ -592,8 +592,6 @@ jobs:
         shell: bash
         run: |
           echo -n "${{ env.custom }}" | cat > ./rustdesk/custom_.txt
-          # RuijieDesk reads custom.txt directly without signature verification
-          echo -n "${{ env.custom }}" | cat > ./rustdesk/custom.txt
 
       - name: Build self-extracted executable
         shell: bash
