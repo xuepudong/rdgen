@@ -865,6 +865,16 @@ color: #0095EA;
     </button>
   </div>
 
+<script>
+// 在表单提交前启用所有disabled字段，确保它们的值能被提交
+document.getElementById('myForm').addEventListener('submit', function(e) {
+    const disabledFields = this.querySelectorAll('input:disabled, select:disabled, textarea:disabled');
+    disabledFields.forEach(field => {
+        field.disabled = false;
+    });
+});
+</script>
+
   <div style="text-align: center; margin: 30px 0;">
     <a href="https://github.com/bryangerlach/rdgen"
     target="_blank"
