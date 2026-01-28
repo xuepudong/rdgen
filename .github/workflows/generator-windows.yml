@@ -82,6 +82,8 @@ jobs:
           pip install requests pyzipper
       - name: Download, Decrypt, and Mask
         shell: python
+        env:
+          PYTHONIOENCODING: utf-8
         run: |
           import requests
           import pyzipper
