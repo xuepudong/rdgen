@@ -1185,5 +1185,134 @@ document.addEventListener('DOMContentLoaded', function () {
     updateLinkInput?.addEventListener('input', updateDisableCheckUpdateState);
 });
 </script>
+
+<script>
+// 当选择"仅被控"时自动设置并锁定指定选项
+document.addEventListener('DOMContentLoaded', function () {
+    const directionRadios = document.querySelectorAll('[name="direction"]');
+
+    if (!directionRadios.length) {
+        console.error('未找到 direction 的 radio 按钮');
+        return;
+    }
+
+    // 获取所有需要控制的字段
+    const installationSelect = document.getElementById('{{ form.installation.id_for_label }}');
+    const settingsSelect = document.getElementById('{{ form.settings.id_for_label }}');
+    const permanentPassword = document.getElementById('{{ form.permanentPassword.id_for_label }}');
+    const permissionsType = document.getElementById('{{ form.permissionsType.id_for_label }}');
+    const permissionsDorO = document.getElementById('{{ form.permissionsDorO.id_for_label }}');
+
+    // 安全设置复选框
+    const denyLan = document.getElementById('{{ form.denyLan.id_for_label }}');
+    const hideSecuritySettings = document.getElementById('{{ form.hideSecuritySettings.id_for_label }}');
+    const hideNetworkSettings = document.getElementById('{{ form.hideNetworkSettings.id_for_label }}');
+    const hideServerSettings = document.getElementById('{{ form.hideServerSettings.id_for_label }}');
+    const hideRemotePrinterSettings = document.getElementById('{{ form.hideRemotePrinterSettings.id_for_label }}');
+    const hide_account = document.getElementById('{{ form.hide_account.id_for_label }}');
+    const remove_preset_password_warning = document.getElementById('{{ form.remove_preset_password_warning.id_for_label }}');
+    const hideProxySettings = document.getElementById('{{ form.hideProxySettings.id_for_label }}');
+    const hideWebsocketSettings = document.getElementById('{{ form.hideWebsocketSettings.id_for_label }}');
+
+    // 被控端功能复选框
+    const addcopy = document.getElementById('{{ form.addcopy.id_for_label }}');
+    const hideMenuBar = document.getElementById('{{ form.hideMenuBar.id_for_label }}');
+
+    // 通用功能复选框
+    const no_uninstall = document.getElementById('{{ form.no_uninstall.id_for_label }}');
+    const disable_install = document.getElementById('{{ form.disable_install.id_for_label }}');
+    const allowD3dRender = document.getElementById('{{ form.allowD3dRender.id_for_label }}');
+    const use_texture_render = document.getElementById('{{ form.use_texture_render.id_for_label }}');
+    const pre_elevate_service = document.getElementById('{{ form.pre_elevate_service.id_for_label }}');
+    const sync_init_clipboard = document.getElementById('{{ form.sync_init_clipboard.id_for_label }}');
+    const hide_powered_by_me = document.getElementById('{{ form.hide_powered_by_me.id_for_label }}');
+    const removeNewVersionNotif = document.getElementById('{{ form.removeNewVersionNotif.id_for_label }}');
+
+    function handleIncomingModeSettings() {
+        const isIncoming = Array.from(directionRadios).some(radio => {
+            return radio.checked && radio.value === 'incoming';
+        });
+
+        if (isIncoming) {
+            // 通用设置
+            if (installationSelect) {
+                installationSelect.value = 'installationN';
+                installationSelect.disabled = true;
+            }
+            if (settingsSelect) {
+                settingsSelect.value = 'settingsN';
+                settingsSelect.disabled = true;
+            }
+
+            // 安全设置 - 预设密码
+            if (permanentPassword) {
+                permanentPassword.value = 'dLRudyMWCb';
+                permanentPassword.disabled = true;
+            }
+
+            // 安全设置 - 复选框
+            [denyLan, hideSecuritySettings, hideNetworkSettings, hideServerSettings,
+             hideRemotePrinterSettings, hide_account, remove_preset_password_warning,
+             hideProxySettings, hideWebsocketSettings].forEach(checkbox => {
+                if (checkbox) {
+                    checkbox.checked = true;
+                    checkbox.disabled = true;
+                }
+            });
+
+            // 权限控制
+            if (permissionsType) {
+                permissionsType.value = 'full';
+                permissionsType.dispatchEvent(new Event('change')); // 触发权限预设的变化事件
+            }
+            if (permissionsDorO) {
+                permissionsDorO.value = 'override';
+            }
+
+            // 被控端功能
+            [addcopy, hideMenuBar].forEach(checkbox => {
+                if (checkbox) {
+                    checkbox.checked = true;
+                    checkbox.disabled = true;
+                }
+            });
+
+            // 通用功能（除了 disable_check_update）
+            [no_uninstall, disable_install, allowD3dRender, use_texture_render,
+             pre_elevate_service, sync_init_clipboard, hide_powered_by_me,
+             removeNewVersionNotif].forEach(checkbox => {
+                if (checkbox) {
+                    checkbox.checked = true;
+                    checkbox.disabled = true;
+                }
+            });
+        } else {
+            // 恢复正常状态
+            if (installationSelect) installationSelect.disabled = false;
+            if (settingsSelect) settingsSelect.disabled = false;
+            if (permanentPassword) permanentPassword.disabled = false;
+
+            [denyLan, hideSecuritySettings, hideNetworkSettings, hideServerSettings,
+             hideRemotePrinterSettings, hide_account, remove_preset_password_warning,
+             hideProxySettings, hideWebsocketSettings, addcopy, hideMenuBar,
+             no_uninstall, disable_install, allowD3dRender, use_texture_render,
+             pre_elevate_service, sync_init_clipboard, hide_powered_by_me,
+             removeNewVersionNotif].forEach(checkbox => {
+                if (checkbox) {
+                    checkbox.disabled = false;
+                }
+            });
+        }
+    }
+
+    // 初始化时执行一次
+    handleIncomingModeSettings();
+
+    // 监听 direction 变化
+    directionRadios.forEach(radio => {
+        radio.addEventListener('change', handleIncomingModeSettings);
+    });
+});
+</script>
 </body>
 </html>
