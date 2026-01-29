@@ -1,0 +1,102 @@
+name: Test macOS Certificate
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-certificate:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install rcodesign tool
+        shell: bash
+        run: |
+          pushd /tmp
+          wget https://github.com/indygreg/apple-platform-rs/releases/download/apple-codesign%2F0.27.0/apple-codesign-0.27.0-x86_64-apple-darwin.tar.gz
+          tar -xzf apple-codesign-0.27.0-x86_64-apple-darwin.tar.gz
+          sudo cp apple-codesign-*/rcodesign /usr/local/bin/
+          sudo chmod +x /usr/local/bin/rcodesign
+          popd
+
+      - name: Test Certificate Decoding
+        env:
+          MACOS_P12_BASE64: ${{ secrets.MACOS_P12_BASE64 }}
+          MACOS_P12_PASSWORD: ${{ secrets.MACOS_P12_PASSWORD }}
+        run: |
+          echo "=== Testing Certificate Secrets ==="
+
+          # Check if secrets are set
+          if [ -z "$MACOS_P12_BASE64" ]; then
+            echo "❌ ERROR: MACOS_P12_BASE64 secret is not set!"
+            exit 1
+          else
+            echo "✅ MACOS_P12_BASE64 secret is set"
+            echo "   Length: ${#MACOS_P12_BASE64} characters"
+          fi
+
+          if [ -z "$MACOS_P12_PASSWORD" ]; then
+            echo "❌ ERROR: MACOS_P12_PASSWORD secret is not set!"
+            exit 1
+          else
+            echo "✅ MACOS_P12_PASSWORD secret is set"
+            echo "   Length: ${#MACOS_P12_PASSWORD} characters"
+          fi
+
+          # Try to decode the certificate
+          echo ""
+          echo "=== Decoding Certificate ==="
+          echo "$MACOS_P12_BASE64" | base64 --decode > test_certificate.p12
+
+          if [ -f test_certificate.p12 ]; then
+            FILE_SIZE=$(stat -f%z test_certificate.p12)
+            echo "✅ Certificate decoded successfully"
+            echo "   File size: $FILE_SIZE bytes"
+          else
+            echo "❌ ERROR: Failed to decode certificate"
+            exit 1
+          fi
+
+          # Try to extract info using rcodesign
+          echo ""
+          echo "=== Testing Certificate with Password ==="
+          if rcodesign extract --p12-file test_certificate.p12 --p12-password "$MACOS_P12_PASSWORD" 2>&1; then
+            echo "✅ Certificate password is CORRECT!"
+            echo ""
+            echo "=== Certificate Details ==="
+            rcodesign print-signing-certificate --p12-file test_certificate.p12 --p12-password "$MACOS_P12_PASSWORD" || true
+          else
+            echo "❌ ERROR: Certificate password is INCORRECT or certificate is invalid!"
+            exit 1
+          fi
+
+          # Clean up
+          rm -f test_certificate.p12
+
+          echo ""
+          echo "=== Test Summary ==="
+          echo "✅ All tests passed!"
+          echo "✅ MACOS_P12_BASE64 is correctly set in GitHub Secrets"
+          echo "✅ MACOS_P12_PASSWORD is correctly set in GitHub Secrets"
+          echo "✅ Certificate can be decoded and decrypted successfully"
+
+      - name: Compare with Local Certificate (if available)
+        if: always()
+        run: |
+          if [ -f "certs/certificate_base64.txt" ]; then
+            echo "=== Comparing with Local Certificate ==="
+            LOCAL_BASE64=$(cat certs/certificate_base64.txt)
+            GITHUB_BASE64="${{ secrets.MACOS_P12_BASE64 }}"
+
+            if [ "$LOCAL_BASE64" = "$GITHUB_BASE64" ]; then
+              echo "✅ GitHub Secret matches local certificate file!"
+            else
+              echo "⚠️  WARNING: GitHub Secret differs from local certificate file"
+              echo "   Local length: ${#LOCAL_BASE64}"
+              echo "   GitHub length: ${#GITHUB_BASE64}"
+            fi
+          else
+            echo "ℹ️  Local certificate file not found in repository"
+          fi

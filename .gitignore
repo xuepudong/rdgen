@@ -6,6 +6,12 @@ gunicorn.conf
 # 敏感文件
 .env
 *.json
+certs/
+*.p12
+*.key
+*.cer
+*.pem
+*.certSigningRequest
 
 # 系统文件
 .DS_Store
@@ -15,6 +21,7 @@ exe/
 png/
 temp_zips/
 RuijieDesk-SOS/
+logs_*/
 
 # 备份文件
 *.bak
