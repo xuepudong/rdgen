@@ -238,10 +238,11 @@ jobs:
 
           # Update slogan
 
-          # Replace help URL with custom URL
+          # Replace rustdesk.com domain with custom domain
           if [ -n "${{ env.urlLink }}" ]; then
-            find ./src ./flutter -type f \( -name "*.rs" -o -name "*.dart" \) -exec sed -i '' -e 's|https://rustdesk\.com/docs/[^"]*|${{ env.urlLink }}/help|g' {} \;
-            echo "✅ Replaced help URLs with ${{ env.urlLink }}/help"
+            CUSTOM_DOMAIN=$(echo "${{ env.urlLink }}" | sed 's|https://||' | sed 's|http://||')
+            find ./src ./flutter -type f \( -name "*.rs" -o -name "*.dart" \) -exec sed -i '' -e "s|rustdesk\\.com|${CUSTOM_DOMAIN}|g" {} \;
+            echo "✅ Replaced rustdesk.com with ${CUSTOM_DOMAIN}"
           fi
           #sed -i '' '/<key>NSHumanReadableCopyright<\/key>/{n;s/<string>.*<\/string>/<string>Copyright 2025 ${{ env.appname }}. All rights reserved.<\/string>/;}' ./flutter/macos/Runner/Info.plist
           
