@@ -1,0 +1,66 @@
+name: Test rcodesign Syntax
+run-name: Test rcodesign Syntax
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-syntax:
+    name: Test rcodesign Command Syntax
+    runs-on: macos-latest
+
+    steps:
+      - name: Install rcodesign tool
+        shell: bash
+        run: |
+          pushd /tmp
+          wget https://github.com/indygreg/apple-platform-rs/releases/download/apple-codesign%2F0.22.0/apple-codesign-0.22.0-macos-universal.tar.gz
+          tar -zxvf apple-codesign-0.22.0-macos-universal.tar.gz
+          sudo mv apple-codesign-0.22.0-macos-universal/rcodesign /usr/local/bin
+          popd
+
+      - name: Show rcodesign help
+        run: |
+          echo "=== rcodesign main help ==="
+          rcodesign --help
+          echo ""
+          echo "=== rcodesign sign help ==="
+          rcodesign sign --help || true
+
+      - name: Decode certificate and create test file
+        run: |
+          # Decode certificate
+          echo "${{ secrets.MACOS_P12_BASE64 }}" | base64 --decode > certificate.p12
+
+          # Create a simple test executable
+          echo '#!/bin/bash' > test_app
+          echo 'echo "Hello"' >> test_app
+          chmod +x test_app
+
+          echo "Certificate file: $(ls -lh certificate.p12)"
+          echo "Test app file: $(ls -lh test_app)"
+
+      - name: Test different rcodesign sign syntaxes
+        run: |
+          echo "=== Test 1: Using --p12-file and --p12-password ==="
+          rcodesign sign \
+            --p12-file certificate.p12 \
+            --p12-password "${{ secrets.MACOS_P12_PASSWORD }}" \
+            --code-signature-flags runtime \
+            test_app || echo "Test 1 failed"
+
+          echo ""
+          echo "=== Test 2: Using --p12-file and --p12-password-file ==="
+          echo -n "${{ secrets.MACOS_P12_PASSWORD }}" > .password
+          rcodesign sign \
+            --p12-file certificate.p12 \
+            --p12-password-file .password \
+            --code-signature-flags runtime \
+            test_app || echo "Test 2 failed"
+
+          echo ""
+          echo "=== Test 3: Check if file was signed ==="
+          codesign -vv test_app || echo "Not signed or verification failed"
+
+          # Clean up
+          rm -f certificate.p12 .password test_app
