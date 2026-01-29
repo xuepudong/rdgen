@@ -663,13 +663,16 @@ jobs:
             
             # Decode the certificate
             echo "${{ secrets.MACOS_P12_BASE64 }}" | base64 --decode > certificate.p12
-            
+
+            # Create password file for rcodesign
+            echo "${{ secrets.MACOS_P12_PASSWORD }}" > .p12_password
+
             # Sign the app bundle and its contents
             if [ -d "${{ env.appname }}.app/Contents/MacOS" ]; then
               echo "Signing main executable..."
               MAIN_EXECUTABLE="${{ env.appname }}.app/Contents/MacOS/${{ env.appname }}"
               if [ -f "$MAIN_EXECUTABLE" ]; then
-                rcodesign sign --p12-file certificate.p12 --p12-password "${{ secrets.MACOS_P12_PASSWORD }}" \
+                rcodesign sign --p12-file certificate.p12 --p12-password-file .p12_password \
                   --code-signature-flags runtime "$MAIN_EXECUTABLE"
               else
                 echo "Main executable not found at expected path: $MAIN_EXECUTABLE"
@@ -679,19 +682,22 @@ jobs:
                 ACTUAL_EXECUTABLE=$(ls "${{ env.appname }}.app/Contents/MacOS/" | head -n 1)
                 if [ -n "$ACTUAL_EXECUTABLE" ]; then
                   echo "Found executable: $ACTUAL_EXECUTABLE"
-                  rcodesign sign --p12-file certificate.p12 --p12-password "${{ secrets.MACOS_P12_PASSWORD }}" \
+                  rcodesign sign --p12-file certificate.p12 --p12-password-file .p12_password \
                     --code-signature-flags runtime "${{ env.appname }}.app/Contents/MacOS/$ACTUAL_EXECUTABLE"
                 fi
               fi
-              
+
               echo "Signing frameworks..."
               find "${{ env.appname }}.app/Contents/Frameworks" -type f -not -name ".*" -exec \
-                rcodesign sign --p12-file certificate.p12 --p12-password "${{ secrets.MACOS_P12_PASSWORD }}" \
+                rcodesign sign --p12-file certificate.p12 --p12-password-file .p12_password \
                 --code-signature-flags runtime {} \;
-              
+
               echo "Signing main bundle..."
-              rcodesign sign --p12-file certificate.p12 --p12-password "${{ secrets.MACOS_P12_PASSWORD }}" \
+              rcodesign sign --p12-file certificate.p12 --p12-password-file .p12_password \
                 --code-signature-flags runtime "${{ env.appname }}.app"
+
+              # Clean up password file
+              rm -f .p12_password
             else
               echo "Error: Invalid app bundle structure"
               exit 1

@@ -11,16 +11,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install rcodesign tool
-        shell: bash
-        run: |
-          pushd /tmp
-          wget https://github.com/indygreg/apple-platform-rs/releases/download/apple-codesign%2F0.27.0/apple-codesign-0.27.0-x86_64-apple-darwin.tar.gz
-          tar -xzf apple-codesign-0.27.0-x86_64-apple-darwin.tar.gz
-          sudo cp apple-codesign-*/rcodesign /usr/local/bin/
-          sudo chmod +x /usr/local/bin/rcodesign
-          popd
-
       - name: Test Certificate Decoding
         env:
           MACOS_P12_BASE64: ${{ secrets.MACOS_P12_BASE64 }}
@@ -59,16 +49,19 @@ jobs:
             exit 1
           fi
 
-          # Try to extract info using rcodesign
+          # Try to extract info using openssl
           echo ""
           echo "=== Testing Certificate with Password ==="
-          if rcodesign extract --p12-file test_certificate.p12 --p12-password "$MACOS_P12_PASSWORD" 2>&1; then
+          if openssl pkcs12 -in test_certificate.p12 -passin pass:"$MACOS_P12_PASSWORD" -noout 2>/dev/null; then
             echo "✅ Certificate password is CORRECT!"
             echo ""
             echo "=== Certificate Details ==="
-            rcodesign print-signing-certificate --p12-file test_certificate.p12 --p12-password "$MACOS_P12_PASSWORD" || true
+            openssl pkcs12 -in test_certificate.p12 -passin pass:"$MACOS_P12_PASSWORD" -nokeys -info 2>/dev/null | head -20 || true
           else
             echo "❌ ERROR: Certificate password is INCORRECT or certificate is invalid!"
+            echo ""
+            echo "Attempting to get more details..."
+            openssl pkcs12 -in test_certificate.p12 -passin pass:"$MACOS_P12_PASSWORD" -noout 2>&1 | head -5 || true
             exit 1
           fi
 
