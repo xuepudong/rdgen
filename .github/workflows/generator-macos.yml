@@ -182,8 +182,8 @@ jobs:
           # sed -i '' '/<key>NSHumanReadableCopyright<\/key>/{n;s/<string>.*<\/string>/<string>Copyright 2025 ${{ env.appname }}. All rights reserved.<\/string>/;}' ./flutter/macos/Runner/Info.plist
           
           # MACSTUFF Update AppInfo.xcconfig
-          sed -i '' -e 's|PRODUCT_NAME = .*|PRODUCT_NAME = ${{ env.appname }}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
-          sed -i '' -e 's|PRODUCT_BUNDLE_IDENTIFIER = .*|PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
+          sed -i '' -e "s|PRODUCT_NAME = .*|PRODUCT_NAME = ${{ env.appname }}|" ./flutter/macos/Runner/Configs/AppInfo.xcconfig
+          sed -i '' -e "s|PRODUCT_BUNDLE_IDENTIFIER = .*|PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID}|" ./flutter/macos/Runner/Configs/AppInfo.xcconfig
           sed -i '' -e 's|Purslane Ltd.|${{ env.appname }}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
           # Keep DEVELOPMENT_TEAM if it exists, don't blank it out
 
@@ -191,8 +191,8 @@ jobs:
           sed -i '' -e 's|Purslane Ltd|${{ env.appname }}|' ./libs/portable/Cargo.toml
           
           # Update Xcode project settings
-          sed -i '' -e 's/PRODUCT_NAME = "RustDesk"/PRODUCT_NAME = "${{ env.appname }}"/' ./flutter/macos/Runner.xcodeproj/project.pbxproj
-          sed -i '' -e 's/PRODUCT_BUNDLE_IDENTIFIER = ".*"/PRODUCT_BUNDLE_IDENTIFIER = "${BUNDLE_ID}"/' ./flutter/macos/Runner.xcodeproj/project.pbxproj
+          sed -i '' -e "s/PRODUCT_NAME = \"RustDesk\"/PRODUCT_NAME = \"${{ env.appname }}\"/" ./flutter/macos/Runner.xcodeproj/project.pbxproj
+          sed -i '' -e "s/PRODUCT_BUNDLE_IDENTIFIER = \".*\"/PRODUCT_BUNDLE_IDENTIFIER = \"${BUNDLE_ID}\"/" ./flutter/macos/Runner.xcodeproj/project.pbxproj
           # Don't modify DEVELOPMENT_TEAM in project.pbxproj
 
           # Update CMake settings
@@ -237,6 +237,12 @@ jobs:
           sed -i '' -e 's|https://rustdesk.com/download|${{ env.downloadLink }}|' ./src/ui/index.tis
 
           # Update slogan
+
+          # Replace help URL with custom URL
+          if [ -n "${{ env.urlLink }}" ]; then
+            find ./src ./flutter -type f \( -name "*.rs" -o -name "*.dart" \) -exec sed -i '' -e 's|https://rustdesk\.com/docs/[^"]*|${{ env.urlLink }}/help|g' {} \;
+            echo "✅ Replaced help URLs with ${{ env.urlLink }}/help"
+          fi
           #sed -i '' '/<key>NSHumanReadableCopyright<\/key>/{n;s/<string>.*<\/string>/<string>Copyright 2025 ${{ env.appname }}. All rights reserved.<\/string>/;}' ./flutter/macos/Runner/Info.plist
           
           # Update slogan - About in en.rs 
