@@ -411,7 +411,8 @@ def generator_view(request):
                 "androidappid":androidappid,
                 "filename":filename,
                 "ui_mode": 'true' if ui_mode else 'false',
-                "hide_powered_by_me": 'true' if hide_powered_by_me else 'false'
+                "hide_powered_by_me": 'true' if hide_powered_by_me else 'false',
+                "direction": direction
             }
 
             temp_json_path = f"data_{uuid.uuid4()}.json"
