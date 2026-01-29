@@ -239,9 +239,11 @@ jobs:
           sed -i '' -e 's|rs-ny.rustdesk.com|${{ env.server }}|' ./libs/hbb_common/src/config.rs
           sed -i '' -e 's|OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=|${{ env.key }}|' ./libs/hbb_common/src/config.rs
           sed -i '' -e 's|https://admin.rustdesk.com|${{ env.apiServer }}|' ./src/common.rs
-          
-          wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/allowCustom.py
-          python allowCustom.py
+
+          # Remove signature verification code (allow custom.txt without signature)
+          sed -i '' -e '/const KEY:/,/};/d' ./src/common.rs
+          sed -i '' -e '/let Ok(data) = sign::verify(&data, &pk)/,/};/d' ./src/common.rs
+
           wget https://raw.githubusercontent.com/bryangerlach/rdgen/refs/heads/master/.github/patches/removeSetupServerTip.diff
           git apply removeSetupServerTip.diff
             
@@ -545,9 +547,11 @@ jobs:
         run: |
           # Create rustdesk directory and custom.txt
           mkdir -p ./rustdesk
-          echo -n "${{ env.custom }}" > ./rustdesk/custom.txt
+          echo -n "${{ env.custom }}" | cat > ./rustdesk/custom.txt
           echo "✅ Created custom.txt with configuration"
           echo "Configuration length: $(wc -c < ./rustdesk/custom.txt) bytes"
+          echo "Contents of custom.txt:"
+          cat ./rustdesk/custom.txt
 
       - name: Build rustdesk
         run: |
@@ -590,6 +594,8 @@ jobs:
             echo "✅ Verifying custom.txt in app bundle:"
             ls -la "$RESOURCES_DIR/custom.txt"
             echo "Configuration length: $(wc -c < "$RESOURCES_DIR/custom.txt") bytes"
+            echo "Contents of custom.txt in app bundle:"
+            cat "$RESOURCES_DIR/custom.txt"
           else
             echo "⚠️  Warning: ./rustdesk/custom.txt not found, skipping copy"
           fi
