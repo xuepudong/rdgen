@@ -1,12 +1,16 @@
 name: update docker image
 
+# Disabled - uncomment to enable
+# on:
+#   push:
+#     branches:
+#       - dev
+#       - master
+#     tags:
+#       - 'v*.*.*'
+
 on:
-  push:
-    branches:
-      - dev
-      - master
-    tags:
-      - 'v*.*.*'
+  workflow_dispatch:  # Only run manually
 
 jobs:
   build:

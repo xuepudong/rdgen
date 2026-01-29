@@ -1,0 +1,96 @@
+name: Analyze P12 Certificate
+run-name: Analyze P12 Certificate
+
+on:
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    name: Analyze Certificate Details
+    runs-on: macos-latest
+
+    steps:
+      - name: Decode and analyze certificate
+        run: |
+          echo "=== Decode P12 certificate ==="
+          echo "${{ secrets.MACOS_P12_BASE64 }}" | base64 --decode > certificate.p12
+
+          echo ""
+          echo "=== Certificate file info ==="
+          file certificate.p12
+          ls -lh certificate.p12
+
+          echo ""
+          echo "=== OpenSSL P12 info ==="
+          openssl pkcs12 -in certificate.p12 \
+            -passin pass:"${{ secrets.MACOS_P12_PASSWORD }}" \
+            -info -noout 2>&1 || echo "Failed to get P12 info"
+
+          echo ""
+          echo "=== Try different legacy options ==="
+
+          echo "Test 1: With -legacy flag..."
+          if openssl pkcs12 -in certificate.p12 \
+            -passin pass:"${{ secrets.MACOS_P12_PASSWORD }}" \
+            -legacy -info -noout 2>&1; then
+            echo "✅ Legacy mode works"
+          else
+            echo "❌ Legacy mode failed"
+          fi
+
+          echo ""
+          echo "Test 2: Export with legacy and re-import..."
+          if openssl pkcs12 -in certificate.p12 \
+            -passin pass:"${{ secrets.MACOS_P12_PASSWORD }}" \
+            -legacy \
+            -clcerts -nokeys -out cert.pem 2>&1; then
+            echo "✅ Certificate extracted with legacy mode"
+            cat cert.pem
+          else
+            echo "❌ Failed to extract certificate"
+          fi
+
+          if openssl pkcs12 -in certificate.p12 \
+            -passin pass:"${{ secrets.MACOS_P12_PASSWORD }}" \
+            -legacy \
+            -nocerts -nodes -out key.pem 2>&1; then
+            echo "✅ Key extracted with legacy mode"
+          else
+            echo "❌ Failed to extract key"
+          fi
+
+          echo ""
+          echo "=== Create new P12 with modern encryption ==="
+          if [ -f cert.pem ] && [ -f key.pem ]; then
+            # Create a new P12 with modern encryption that rcodesign can handle
+            openssl pkcs12 -export \
+              -in cert.pem \
+              -inkey key.pem \
+              -out certificate_new.p12 \
+              -passout pass:"${{ secrets.MACOS_P12_PASSWORD }}" \
+              -keypbe PBE-SHA1-3DES \
+              -certpbe PBE-SHA1-3DES \
+              -macalg sha1
+
+            echo "New P12 created: $(ls -lh certificate_new.p12 | awk '{print $5}')"
+
+            # Test with rcodesign
+            echo ""
+            echo "=== Test new P12 with rcodesign ==="
+            echo '#!/bin/bash' > test_app
+            echo 'echo "test"' >> test_app
+            chmod +x test_app
+
+            if /usr/local/bin/rcodesign sign \
+              --p12-file certificate_new.p12 \
+              --p12-password "${{ secrets.MACOS_P12_PASSWORD }}" \
+              --code-signature-flags runtime \
+              test_app 2>&1; then
+              echo "✅ SUCCESS: New P12 works with rcodesign!"
+            else
+              echo "❌ New P12 also fails with rcodesign"
+            fi
+          fi
+
+          # Clean up
+          rm -f certificate.p12 certificate_new.p12 cert.pem key.pem test_app

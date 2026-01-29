@@ -1,0 +1,75 @@
+name: Test OpenSSL P12 to PEM Conversion
+run-name: Test OpenSSL P12 to PEM Conversion
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-conversion:
+    name: Test P12 to PEM Conversion
+    runs-on: macos-latest
+
+    steps:
+      - name: Install rcodesign tool
+        shell: bash
+        run: |
+          pushd /tmp
+          wget https://github.com/indygreg/apple-platform-rs/releases/download/apple-codesign%2F0.22.0/apple-codesign-0.22.0-macos-universal.tar.gz
+          tar -zxvf apple-codesign-0.22.0-macos-universal.tar.gz
+          sudo mv apple-codesign-0.22.0-macos-universal/rcodesign /usr/local/bin
+          popd
+
+      - name: Convert P12 to PEM using OpenSSL
+        run: |
+          echo "=== Step 1: Decode P12 certificate ==="
+          echo "${{ secrets.MACOS_P12_BASE64 }}" | base64 --decode > certificate.p12
+          echo "P12 file size: $(ls -lh certificate.p12 | awk '{print $5}')"
+
+          echo ""
+          echo "=== Step 2: Extract certificate and key using OpenSSL ==="
+
+          # Extract certificate
+          openssl pkcs12 -in certificate.p12 \
+            -passin pass:"${{ secrets.MACOS_P12_PASSWORD }}" \
+            -clcerts -nokeys -out certificate.pem
+
+          # Extract private key
+          openssl pkcs12 -in certificate.p12 \
+            -passin pass:"${{ secrets.MACOS_P12_PASSWORD }}" \
+            -nocerts -nodes -out private_key.pem
+
+          echo "Certificate PEM size: $(ls -lh certificate.pem | awk '{print $5}')"
+          echo "Private key PEM size: $(ls -lh private_key.pem | awk '{print $5}')"
+
+          echo ""
+          echo "=== Step 3: Verify PEM files ==="
+          echo "Certificate info:"
+          openssl x509 -in certificate.pem -noout -subject -issuer -dates
+
+          echo ""
+          echo "=== Step 4: Create test app ==="
+          echo '#!/bin/bash' > test_app
+          echo 'echo "Hello"' >> test_app
+          chmod +x test_app
+
+          echo ""
+          echo "=== Step 5: Try signing with PEM files ==="
+
+          # Try method 1: Using --pem-source
+          echo "Method 1: Using --pem-source with certificate and key..."
+          if rcodesign sign \
+            --pem-source certificate.pem \
+            --pem-source private_key.pem \
+            --code-signature-flags runtime \
+            test_app 2>&1; then
+            echo "✅ SUCCESS: Signed with PEM files!"
+          else
+            echo "❌ FAILED: PEM signing failed"
+          fi
+
+          echo ""
+          echo "=== Step 6: Verify signature ==="
+          codesign -vv test_app || echo "Verification failed"
+
+          # Clean up
+          rm -f certificate.p12 certificate.pem private_key.pem test_app
