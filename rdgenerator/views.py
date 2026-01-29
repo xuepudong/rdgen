@@ -221,7 +221,7 @@ def generator_view(request):
 
             # 图像质量和帧率设置
             if image_quality:
-                decodedCustom['override-settings']['image-quality'] = image_quality
+                decodedCustom['override-settings']['image_quality'] = image_quality
             if custom_fps and custom_fps != '30':
                 decodedCustom['override-settings']['custom-fps'] = custom_fps
 
