@@ -162,14 +162,28 @@ jobs:
           cp ./flutter/macos/Runner/Configs/AppInfo.xcconfig ./flutter/macos/Runner/Configs/AppInfo.xcconfig.bak
          
           # MACSTUFF Update Info.plist
-          sed -i '' -e 's|<key>CFBundleName</key>.*<string>.*</string>|<key>CFBundleName</key>\n\t<string>${{ env.appname }}</string>|' ./flutter/macos/Runner/Info.plist
-          sed -i '' -e 's|<key>CFBundleDisplayName</key>.*<string>.*</string>|<key>CFBundleDisplayName</key>\n\t<string>${{ env.appname }}</string>|' ./flutter/macos/Runner/Info.plist
-          sed -i '' -e 's|<key>CFBundleIdentifier</key>.*<string>.*</string>|<key>CFBundleIdentifier</key>\n\t<string>com.bjyy.${{ env.appname }}</string>|' ./flutter/macos/Runner/Info.plist
+
+          # Set bundle identifier based on direction
+          if [ "${{ env.direction }}" = "incoming" ]; then
+            BUNDLE_ID="com.bjyy.RuijieDesk.incoming"
+          elif [ "${{ env.direction }}" = "outgoing" ]; then
+            BUNDLE_ID="com.bjyy.RuijieDesk.outcoming"
+          else
+            # Both directions or default
+            BUNDLE_ID="com.bjyy.YiYuanDesk"
+          fi
+
+          echo "Direction: ${{ env.direction }}"
+          echo "Bundle Identifier: $BUNDLE_ID"
+
+          sed -i '' -e "s|<key>CFBundleName</key>.*<string>.*</string>|<key>CFBundleName</key>\\n\\t<string>${{ env.appname }}</string>|" ./flutter/macos/Runner/Info.plist
+          sed -i '' -e "s|<key>CFBundleDisplayName</key>.*<string>.*</string>|<key>CFBundleDisplayName</key>\\n\\t<string>${{ env.appname }}</string>|" ./flutter/macos/Runner/Info.plist
+          sed -i '' -e "s|<key>CFBundleIdentifier</key>.*<string>.*</string>|<key>CFBundleIdentifier</key>\\n\\t<string>${BUNDLE_ID}</string>|" ./flutter/macos/Runner/Info.plist
           # sed -i '' '/<key>NSHumanReadableCopyright<\/key>/{n;s/<string>.*<\/string>/<string>Copyright 2025 ${{ env.appname }}. All rights reserved.<\/string>/;}' ./flutter/macos/Runner/Info.plist
           
           # MACSTUFF Update AppInfo.xcconfig
           sed -i '' -e 's|PRODUCT_NAME = .*|PRODUCT_NAME = ${{ env.appname }}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
-          sed -i '' -e 's|PRODUCT_BUNDLE_IDENTIFIER = .*|PRODUCT_BUNDLE_IDENTIFIER = com.bjyy.${{ env.appname }}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
+          sed -i '' -e 's|PRODUCT_BUNDLE_IDENTIFIER = .*|PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
           sed -i '' -e 's|Purslane Ltd.|${{ env.appname }}|' ./flutter/macos/Runner/Configs/AppInfo.xcconfig
           # Keep DEVELOPMENT_TEAM if it exists, don't blank it out
 
@@ -178,7 +192,7 @@ jobs:
           
           # Update Xcode project settings
           sed -i '' -e 's/PRODUCT_NAME = "RustDesk"/PRODUCT_NAME = "${{ env.appname }}"/' ./flutter/macos/Runner.xcodeproj/project.pbxproj
-          sed -i '' -e 's/PRODUCT_BUNDLE_IDENTIFIER = ".*"/PRODUCT_BUNDLE_IDENTIFIER = "com.bjyy.${{ env.appname }}"/' ./flutter/macos/Runner.xcodeproj/project.pbxproj
+          sed -i '' -e 's/PRODUCT_BUNDLE_IDENTIFIER = ".*"/PRODUCT_BUNDLE_IDENTIFIER = "${BUNDLE_ID}"/' ./flutter/macos/Runner.xcodeproj/project.pbxproj
           # Don't modify DEVELOPMENT_TEAM in project.pbxproj
 
           # Update CMake settings
