@@ -671,21 +671,28 @@ jobs:
             # Decode the certificate
             echo "${{ secrets.MACOS_P12_BASE64 }}" | base64 --decode > certificate.p12
 
-            # Create password file for rcodesign (without trailing newline)
-            echo -n "${{ secrets.MACOS_P12_PASSWORD }}" > .p12_password
+            # Convert P12 to PEM format (more compatible with rcodesign)
+            echo "Converting P12 to PEM format..."
+            openssl pkcs12 -in certificate.p12 \
+              -passin pass:"${{ secrets.MACOS_P12_PASSWORD }}" \
+              -clcerts -nokeys -out certificate.pem
+
+            openssl pkcs12 -in certificate.p12 \
+              -passin pass:"${{ secrets.MACOS_P12_PASSWORD }}" \
+              -nocerts -nodes -out private_key.pem
+
+            echo "Certificate and key extracted successfully"
 
             # Sign the app bundle and its contents
             if [ -d "${{ env.appname }}.app/Contents/MacOS" ]; then
               echo "Signing main executable..."
               MAIN_EXECUTABLE="${{ env.appname }}.app/Contents/MacOS/${{ env.appname }}"
               if [ -f "$MAIN_EXECUTABLE" ]; then
-                # Try with password file first, fallback to inline password
-                if ! rcodesign sign --p12-file certificate.p12 --p12-password-file .p12_password \
-                  --code-signature-flags runtime "$MAIN_EXECUTABLE" 2>&1; then
-                  echo "Password file failed, trying inline password..."
-                  rcodesign sign --p12-file certificate.p12 --p12-password "${{ secrets.MACOS_P12_PASSWORD }}" \
-                    --code-signature-flags runtime "$MAIN_EXECUTABLE"
-                fi
+                rcodesign sign \
+                  --pem-source certificate.pem \
+                  --pem-source private_key.pem \
+                  --code-signature-flags runtime \
+                  "$MAIN_EXECUTABLE"
               else
                 echo "Main executable not found at expected path: $MAIN_EXECUTABLE"
                 # Try to find the actual executable
@@ -694,41 +701,34 @@ jobs:
                 ACTUAL_EXECUTABLE=$(ls "${{ env.appname }}.app/Contents/MacOS/" | head -n 1)
                 if [ -n "$ACTUAL_EXECUTABLE" ]; then
                   echo "Found executable: $ACTUAL_EXECUTABLE"
-                  if ! rcodesign sign --p12-file certificate.p12 --p12-password-file .p12_password \
-                    --code-signature-flags runtime "${{ env.appname }}.app/Contents/MacOS/$ACTUAL_EXECUTABLE" 2>&1; then
-                    echo "Password file failed, trying inline password..."
-                    rcodesign sign --p12-file certificate.p12 --p12-password "${{ secrets.MACOS_P12_PASSWORD }}" \
-                      --code-signature-flags runtime "${{ env.appname }}.app/Contents/MacOS/$ACTUAL_EXECUTABLE"
-                  fi
+                  rcodesign sign \
+                    --pem-source certificate.pem \
+                    --pem-source private_key.pem \
+                    --code-signature-flags runtime \
+                    "${{ env.appname }}.app/Contents/MacOS/$ACTUAL_EXECUTABLE"
                 fi
               fi
 
               echo "Signing frameworks..."
-              find "${{ env.appname }}.app/Contents/Frameworks" -type f -not -name ".*" -exec sh -c '
-                if ! rcodesign sign --p12-file certificate.p12 --p12-password-file .p12_password \
-                  --code-signature-flags runtime "$1" 2>&1; then
-                  rcodesign sign --p12-file certificate.p12 --p12-password "${{ secrets.MACOS_P12_PASSWORD }}" \
-                    --code-signature-flags runtime "$1"
-                fi
-              ' sh {} \;
+              find "${{ env.appname }}.app/Contents/Frameworks" -type f -not -name ".*" -exec \
+                rcodesign sign \
+                  --pem-source certificate.pem \
+                  --pem-source private_key.pem \
+                  --code-signature-flags runtime {} \;
 
               echo "Signing main bundle..."
-              if ! rcodesign sign --p12-file certificate.p12 --p12-password-file .p12_password \
-                --code-signature-flags runtime "${{ env.appname }}.app" 2>&1; then
-                echo "Password file failed, trying inline password..."
-                rcodesign sign --p12-file certificate.p12 --p12-password "${{ secrets.MACOS_P12_PASSWORD }}" \
-                  --code-signature-flags runtime "${{ env.appname }}.app"
-              fi
+              rcodesign sign \
+                --pem-source certificate.pem \
+                --pem-source private_key.pem \
+                --code-signature-flags runtime \
+                "${{ env.appname }}.app"
 
-              # Clean up password file
-              rm -f .p12_password
+              # Clean up sensitive files
+              rm -f certificate.p12 certificate.pem private_key.pem
             else
               echo "Error: Invalid app bundle structure"
               exit 1
-            fi
-            
-            # Clean up
-            rm certificate.p12 
+            fi 
 
       - name: Create DMG
         run: |
