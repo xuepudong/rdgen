@@ -541,6 +541,14 @@ jobs:
         run: |
           mkdir -p ./build/macos/Build/Products/Release/RustDesk.app/Contents/MacOS
 
+      - name: Create custom configuration file
+        run: |
+          # Create rustdesk directory and custom.txt
+          mkdir -p ./rustdesk
+          echo -n "${{ env.custom }}" > ./rustdesk/custom.txt
+          echo "✅ Created custom.txt with configuration"
+          echo "Configuration length: $(wc -c < ./rustdesk/custom.txt) bytes"
+
       - name: Build rustdesk
         run: |
           if [ "${{ matrix.job.target }}" = "aarch64-apple-darwin" ]; then
@@ -552,6 +560,39 @@ jobs:
           fi
           sed -i '' -e "s/RustDesk.app/\"${{ env.appname }}.app\"/" build.py
           ./build.py --flutter --hwcodec --unix-file-copy-paste ${{ matrix.job.extra-build-args }}
+
+      - name: Copy custom.txt to app bundle Resources
+        shell: bash
+        run: |
+          BUILD_DIR="./flutter/build/macos/Build/Products/Release"
+
+          # Determine which app bundle exists (custom name or RustDesk.app)
+          if [ -d "$BUILD_DIR/${{ env.appname }}.app" ]; then
+            APP_PATH="$BUILD_DIR/${{ env.appname }}.app"
+            echo "Found app bundle: ${{ env.appname }}.app"
+          elif [ -d "$BUILD_DIR/RustDesk.app" ]; then
+            APP_PATH="$BUILD_DIR/RustDesk.app"
+            echo "Found app bundle: RustDesk.app"
+          else
+            echo "❌ Error: No app bundle found in $BUILD_DIR"
+            ls -la "$BUILD_DIR"
+            exit 1
+          fi
+
+          RESOURCES_DIR="$APP_PATH/Contents/Resources"
+          echo "Creating Resources directory if it doesn't exist..."
+          mkdir -p "$RESOURCES_DIR"
+
+          if [ -f "./rustdesk/custom.txt" ]; then
+            echo "Copying custom.txt to $RESOURCES_DIR/custom.txt"
+            cp ./rustdesk/custom.txt "$RESOURCES_DIR/custom.txt"
+
+            echo "✅ Verifying custom.txt in app bundle:"
+            ls -la "$RESOURCES_DIR/custom.txt"
+            echo "Configuration length: $(wc -c < "$RESOURCES_DIR/custom.txt") bytes"
+          else
+            echo "⚠️  Warning: ./rustdesk/custom.txt not found, skipping copy"
+          fi
 
       # - name: Copy service file
       #   run: |
@@ -565,15 +606,16 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ env.uuid }}", "status": "50% complete, this step takes about 5 minutes, be patient."}'
       
-      - name: Install rcodesign tool
-        if: env.MACOS_P12_BASE64 != null
-        shell: bash
-        run: |
-          pushd /tmp
-          wget https://github.com/indygreg/apple-platform-rs/releases/download/apple-codesign%2F0.22.0/apple-codesign-0.22.0-macos-universal.tar.gz
-          tar -zxvf apple-codesign-0.22.0-macos-universal.tar.gz
-          mv apple-codesign-0.22.0-macos-universal/rcodesign /usr/local/bin
-          popd
+      # rcodesign is no longer needed - signing is done locally
+      # - name: Install rcodesign tool
+      #   if: env.MACOS_P12_BASE64 != null
+      #   shell: bash
+      #   run: |
+      #     pushd /tmp
+      #     wget https://github.com/indygreg/apple-platform-rs/releases/download/apple-codesign%2F0.22.0/apple-codesign-0.22.0-macos-universal.tar.gz
+      #     tar -zxvf apple-codesign-0.22.0-macos-universal.tar.gz
+      #     mv apple-codesign-0.22.0-macos-universal/rcodesign /usr/local/bin
+      #     popd
 
       - name: Install build runtime
         run: |
@@ -642,93 +684,29 @@ jobs:
           customHeaders: '{"Content-Type": "application/json"}'
           data: '{"uuid": "${{ env.uuid }}", "status": "85% complete"}'
 
-      - name: Sign macOS app bundle
-        if: env.MACOS_P12_BASE64 != ''
+      # Signing and notarization are now done locally
+      # See: 本地签名和公证流程.md for instructions
+
+      - name: Rename app bundle
         run: |
             cd flutter/build/macos/Build/Products/Release
 
-            # Check if password is set
-            if [ -z "${{ secrets.MACOS_P12_PASSWORD }}" ]; then
-              echo "⚠️  WARNING: MACOS_P12_PASSWORD is not set. Skipping code signing."
-              exit 0
-            fi
-
-            # Debug info
             echo "Current directory contents:"
             ls -la
-            
-            # Rename RustDesk.app to the custom app name first
+
+            # Rename RustDesk.app to the custom app name
             if [ -d "RustDesk.app" ]; then
-              # First rename the app if it's still called RustDesk.app
               mv "RustDesk.app" "${{ env.appname }}.app"
-              echo "Renamed RustDesk.app to ${{ env.appname }}.app"
+              echo "✅ Renamed RustDesk.app to ${{ env.appname }}.app"
             fi
-            
-            echo "App bundle contents after rename:"
-            ls -la "${{ env.appname }}.app" || echo "App not found"
-            ls -la "${{ env.appname }}.app/Contents" || echo "Contents not found"
-            
-            # Decode the certificate
-            echo "${{ secrets.MACOS_P12_BASE64 }}" | base64 --decode > certificate.p12
 
-            # Convert P12 to PEM format (more compatible with rcodesign)
-            echo "Converting P12 to PEM format..."
-            openssl pkcs12 -in certificate.p12 \
-              -passin pass:"${{ secrets.MACOS_P12_PASSWORD }}" \
-              -clcerts -nokeys -out certificate.pem
-
-            openssl pkcs12 -in certificate.p12 \
-              -passin pass:"${{ secrets.MACOS_P12_PASSWORD }}" \
-              -nocerts -nodes -out private_key.pem
-
-            echo "Certificate and key extracted successfully"
-
-            # Sign the app bundle and its contents
-            if [ -d "${{ env.appname }}.app/Contents/MacOS" ]; then
-              echo "Signing main executable..."
-              MAIN_EXECUTABLE="${{ env.appname }}.app/Contents/MacOS/${{ env.appname }}"
-              if [ -f "$MAIN_EXECUTABLE" ]; then
-                rcodesign sign \
-                  --pem-source certificate.pem \
-                  --pem-source private_key.pem \
-                  --code-signature-flags runtime \
-                  "$MAIN_EXECUTABLE"
-              else
-                echo "Main executable not found at expected path: $MAIN_EXECUTABLE"
-                # Try to find the actual executable
-                echo "Available executables in MacOS directory:"
-                ls -la "${{ env.appname }}.app/Contents/MacOS/"
-                ACTUAL_EXECUTABLE=$(ls "${{ env.appname }}.app/Contents/MacOS/" | head -n 1)
-                if [ -n "$ACTUAL_EXECUTABLE" ]; then
-                  echo "Found executable: $ACTUAL_EXECUTABLE"
-                  rcodesign sign \
-                    --pem-source certificate.pem \
-                    --pem-source private_key.pem \
-                    --code-signature-flags runtime \
-                    "${{ env.appname }}.app/Contents/MacOS/$ACTUAL_EXECUTABLE"
-                fi
-              fi
-
-              echo "Signing frameworks..."
-              find "${{ env.appname }}.app/Contents/Frameworks" -type f -not -name ".*" -exec \
-                rcodesign sign \
-                  --pem-source certificate.pem \
-                  --pem-source private_key.pem \
-                  --code-signature-flags runtime {} \;
-
-              echo "Signing main bundle..."
-              rcodesign sign \
-                --pem-source certificate.pem \
-                --pem-source private_key.pem \
-                --code-signature-flags runtime \
-                "${{ env.appname }}.app"
-
-              # Clean up sensitive files
-              rm -f certificate.p12 certificate.pem private_key.pem
-            else
-              echo "Error: Invalid app bundle structure"
+            if [ ! -d "${{ env.appname }}.app" ]; then
+              echo "❌ Error: App bundle not found!"
               exit 1
-            fi 
+            fi
+
+            echo "✅ App bundle ready (unsigned)"
+            echo "⚠️  Note: App is NOT signed. Sign locally using entitlements.plist"
 
       - name: Create DMG
         run: |
