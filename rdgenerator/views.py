@@ -195,6 +195,11 @@ def generator_view(request):
             decodedCustom = {}
             if direction != "Both":
                 decodedCustom['conn-type'] = direction
+                # 当选择"仅被控"时，自动隐藏账户选项卡
+                if direction == "incoming":
+                    if 'override-settings' not in decodedCustom:
+                        decodedCustom['override-settings'] = {}
+                    decodedCustom['override-settings']['hide-account'] = 'Y'
             if installation == "installationN":
                 decodedCustom['disable-installation'] = 'Y'
             if settings == "settingsN":
