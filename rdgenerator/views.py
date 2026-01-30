@@ -59,7 +59,7 @@ def generator_view(request):
                 appname = "忆远远程控制"
             compname = form.cleaned_data['compname']
             if not compname:
-                compname = "Purslane Ltd"
+                compname = "Beijing Yiyuan Information Technology Co., Ltd."
             androidappid = form.cleaned_data['androidappid']
             if not androidappid:
                 androidappid = "com.carriez.flutter_hbb"

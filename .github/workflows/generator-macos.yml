@@ -192,6 +192,7 @@ jobs:
 
           # Replace Purslane Ltd. with company name in all source files
           if [ -n "${{ env.compname }}" ]; then
+            sed -i '' -e 's|Purslane Ltd|${{ env.compname }}|g' ./flutter/lib/desktop/pages/desktop_setting_page.dart
             find ./src ./flutter -type f \( -name "*.rs" -o -name "*.dart" -o -name "*.toml" \) -exec sed -i '' -e "s|Purslane Ltd\\.\\?|${{ env.compname }}|g" {} \;
             echo "✅ Replaced Purslane Ltd. with ${{ env.compname }}"
           fi
