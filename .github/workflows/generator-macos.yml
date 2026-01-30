@@ -214,6 +214,8 @@ jobs:
           cp ./src/lang/nl.rs ./src/lang/nl.rs.bak
           find ./src/lang -name "*.rs" -exec sed -i '' -e 's|RustDesk|${{ env.appname }}|' {} \;
           sed -i '' -e 's|RustDesk|${{ env.appname }}|' ./src/lang/nl.rs
+          # Change window title from "Your Desktop" to custom appname
+          sed -i '' -e 's|translate("Your Desktop")|appName|' ./flutter/lib/desktop/pages/desktop_home_page.dart
           # Replace desk_tip with custom message
           sed -i '' -e 's|你的桌面可以通过下面的 ID 和密码访问。|请您提供以下 ID 和密码给工程师，以便为您远程协助解决问题。|' ./src/lang/cn.rs
           sed -i '' -e 's|你的桌面可以通过下面的 ID 和密码访问。|请您提供以下 ID 和密码给工程师，以便为您远程协助解决问题。|' ./src/lang/tw.rs
@@ -265,6 +267,7 @@ jobs:
 
           sed -i '' -e 's|rs-ny.rustdesk.com|${{ env.server }}|' ./libs/hbb_common/src/config.rs
           sed -i '' -e 's|OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=|${{ env.key }}|' ./libs/hbb_common/src/config.rs
+          sed -i '' -e 's|pub static ref APP_NAME: RwLock<String> = RwLock::new("RustDesk".to_owned());|pub static ref APP_NAME: RwLock<String> = RwLock::new("${{ env.appname }}".to_owned());|' ./libs/hbb_common/src/config.rs
           sed -i '' -e 's|https://admin.rustdesk.com|${{ env.apiServer }}|' ./src/common.rs
 
           # Remove signature verification code (allow custom.txt without signature)
