@@ -228,6 +228,12 @@ jobs:
             sed -i '' -e 's|Custa est un'"'"'editzione personalizada.\\nTi podes connètere a àteros dispositivos, ma sos àteros dispositivos non si podent connètere a custu dispositivu.|歡迎使用小銳雲橋(工程師端)。\\n請輸入客戶提供的 ID 和密碼並進行連接。\\n請您注意,所有連接均會被記錄。|' ./src/lang/sc.rs
           fi
 
+          # Hide Account tab when direction is incoming (仅被控)
+          if [ "${{ env.direction }}" = "incoming" ]; then
+            sed -i '' -e '/if (!bind\.isDisableAccount()) SettingsTabKey\.account,/d' ./flutter/lib/desktop/pages/desktop_setting_page.dart
+            echo "✅ Removed Account tab for incoming direction"
+          fi
+
           sed -i '' -e 's|https://rustdesk.com|${{ env.urlLink }}|' ./build.py
           sed -i '' -e "s|launchUrl(Uri.parse('https://rustdesk.com'));|launchUrl(Uri.parse('${{ env.urlLink }}'));|" ./flutter/lib/common.dart
           sed -i '' -e "s|launchUrlString('https://rustdesk.com');|launchUrlString('${{ env.urlLink }}');|" ./flutter/lib/desktop/pages/desktop_setting_page.dart
