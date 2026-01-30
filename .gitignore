@@ -13,6 +13,7 @@ certs/
 *.pem
 *.certSigningRequest
 *.md
+sign*.sh
 
 # 系统文件
 .DS_Store
