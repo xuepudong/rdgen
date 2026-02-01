@@ -226,6 +226,10 @@ jobs:
             sed -i '' -e 's|当前版本的软件是定制版本。\\n您可以连接至其他设备，但是其他设备无法连接至您的设备。|欢迎使用小锐云桥(工程师端)。\\n请输入客户提供的 ID 和密码并进行连接。\\n请您注意,所有连接均会被记录。|' ./src/lang/cn.rs
             sed -i '' -e 's|目前版本的軟體是自訂版本。\\n您可以連線至其他裝置，但是其他裝置無法連線至您的裝置。|歡迎使用小銳雲橋(工程師端)。\\n請輸入客戶提供的 ID 和密碼並進行連接。\\n請您注意,所有連接均會被記錄。|' ./src/lang/tw.rs
             sed -i '' -e 's|Custa est un'"'"'editzione personalizada.\\nTi podes connètere a àteros dispositivos, ma sos àteros dispositivos non si podent connètere a custu dispositivu.|歡迎使用小銳雲橋(工程師端)。\\n請輸入客戶提供的 ID 和密碼並進行連接。\\n請您注意,所有連接均會被記錄。|' ./src/lang/sc.rs
+            # Replace password verification prompt for outgoing direction
+            sed -i '' -e 's|验证 ${{ env.appname }} 密码|请输入客户提供的密码|' ./src/lang/cn.rs
+            sed -i '' -e 's|驗證 ${{ env.appname }} 密碼|請輸入客戶提供的密碼|' ./src/lang/tw.rs
+            sed -i '' -e 's|验证 ${{ env.appname }} 密码|请输入客户提供的密码|' ./src/lang/sc.rs
           fi
 
           # Hide Account tab when direction is incoming (仅被控)
