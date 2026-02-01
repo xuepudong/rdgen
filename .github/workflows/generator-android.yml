@@ -365,6 +365,13 @@ jobs:
             sed -i -e 's|驗證 ${{ env.appname }} 密碼|請輸入客戶提供的密碼|' ./src/lang/tw.rs
             sed -i -e 's|验证 ${{ env.appname }} 密码|请输入客户提供的密码|' ./src/lang/sc.rs
           fi
+
+          # Hide Account tab when direction is incoming (仅被控)
+          if [ "${{ env.direction }}" = "incoming" ]; then
+            sed -i -e '/if (!bind\.isDisableAccount()) SettingsTabKey\.account,/d' ./flutter/lib/desktop/pages/desktop_setting_page.dart
+            echo "✅ Removed Account tab for incoming direction"
+          fi
+
           sed -i -e 's|RustDesk|${{ env.appname }}|' ./flutter/android/app/src/main/res/values/strings.xml
           sed -i -e "s|title: 'RustDesk'|title: '${{ env.appname }}'|" ./flutter/lib/main.dart
           sed -i -e "s|return 'RustDesk';|return '${{ env.appname }}';|" ./flutter/lib/web/bridge.dart

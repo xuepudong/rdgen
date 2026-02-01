@@ -193,6 +193,12 @@ jobs:
             sed -i -e 's|验证 ${{ env.appname }} 密码|请输入客户提供的密码|' ./src/lang/sc.rs
           fi
 
+          # Hide Account tab when direction is incoming (仅被控)
+          if [ "${{ env.direction }}" = "incoming" ]; then
+            sed -i -e '/if (!bind\.isDisableAccount()) SettingsTabKey\.account,/d' ./flutter/lib/desktop/pages/desktop_setting_page.dart
+            echo "✅ Removed Account tab for incoming direction"
+          fi
+
       - name: fix registry if appname has a space
         if: contains(env.appname, ' ')
         continue-on-error: true
