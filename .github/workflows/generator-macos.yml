@@ -624,7 +624,7 @@ jobs:
           with open('./rustdesk/custom.txt', 'w') as f:
             f.write(encoded_config)
 
-          print("✅ Enabled auto-record for outgoing direction")
+          print("Enabled auto-record for outgoing direction")
           print(f"Updated configuration length: {len(encoded_config)} bytes")
 
       - name: Build rustdesk

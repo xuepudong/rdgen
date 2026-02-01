@@ -571,7 +571,7 @@ jobs:
             with open(os.environ['GITHUB_ENV'], 'a') as env_file:
               env_file.write(f"custom={encoded_config}\n")
 
-            print("✅ Enabled auto-record for outgoing direction")
+            print("Enabled auto-record for outgoing direction")
             print(f"Updated configuration length: {len(encoded_config)} bytes")
 
       - name: Build Flutter APKs

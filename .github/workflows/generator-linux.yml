@@ -353,7 +353,7 @@ jobs:
           with open('./custom_.txt', 'w') as f:
             f.write(encoded_config)
 
-          print("✅ Enabled auto-record for outgoing direction")
+          print("Enabled auto-record for outgoing direction")
           print(f"Updated configuration length: {len(encoded_config)} bytes")
           # sed -i '/intl:/a \ \ archive: ^3.6.1' ./flutter/pubspec.yaml
           sed -i -e 's|https://admin.rustdesk.com|${{ env.apiServer }}|' ./src/common.rs
