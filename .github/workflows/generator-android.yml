@@ -541,6 +541,42 @@ jobs:
           sed -i "s/org.gradle.jvmargs=-Xmx1024M/org.gradle.jvmargs=-Xmx2g/g" ./flutter/android/gradle.properties
           # temporary use debug sign config
           sed -i "s/signingConfigs.release/signingConfigs.debug/g" ./flutter/android/app/build.gradle
+
+      - name: Enable auto-record for outgoing direction
+        if: env.direction == 'outgoing'
+        shell: python
+        run: |
+          import base64
+          import json
+          import os
+
+          # Read custom from environment
+          encoded_config = os.environ.get('custom', '')
+
+          if encoded_config:
+            # Decode from base64
+            decoded_bytes = base64.b64decode(encoded_config)
+            config = json.loads(decoded_bytes.decode('utf-8'))
+
+            # Enable auto-record in override-settings (user cannot disable)
+            if 'override-settings' not in config:
+              config['override-settings'] = {}
+            config['override-settings']['enable-record-session'] = 'Y'
+
+            # Encode back to base64
+            config_json = json.dumps(config)
+            encoded_config = base64.b64encode(config_json.encode('utf-8')).decode('ascii')
+
+            # Write to GITHUB_ENV to update the environment variable
+            with open(os.environ['GITHUB_ENV'], 'a') as env_file:
+              env_file.write(f"custom={encoded_config}\n")
+
+            print("✅ Enabled auto-record for outgoing direction")
+            print(f"Updated configuration length: {len(encoded_config)} bytes")
+
+      - name: Build Flutter APKs
+        shell: bash
+        run: |
           case ${{ matrix.job.target }} in
             aarch64-linux-android)
             mkdir -p ./flutter/android/app/src/main/jniLibs/arm64-v8a

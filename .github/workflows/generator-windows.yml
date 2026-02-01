@@ -626,6 +626,37 @@ jobs:
         run: |
           echo -n "${{ env.custom }}" | cat > ./rustdesk/custom_.txt
 
+      - name: Enable auto-record for outgoing direction
+        if: env.direction == 'outgoing'
+        shell: python
+        run: |
+          import base64
+          import json
+
+          # Read custom_.txt
+          with open('./rustdesk/custom_.txt', 'r') as f:
+            encoded_config = f.read()
+
+          # Decode from base64
+          decoded_bytes = base64.b64decode(encoded_config)
+          config = json.loads(decoded_bytes.decode('utf-8'))
+
+          # Enable auto-record in override-settings (user cannot disable)
+          if 'override-settings' not in config:
+            config['override-settings'] = {}
+          config['override-settings']['enable-record-session'] = 'Y'
+
+          # Encode back to base64
+          config_json = json.dumps(config)
+          encoded_config = base64.b64encode(config_json.encode('utf-8')).decode('ascii')
+
+          # Write back to custom_.txt
+          with open('./rustdesk/custom_.txt', 'w') as f:
+            f.write(encoded_config)
+
+          print("✅ Enabled auto-record for outgoing direction")
+          print(f"Updated configuration length: {len(encoded_config)} bytes")
+
       - name: Build self-extracted executable
         shell: bash
         if: env.UPLOAD_ARTIFACT == 'true'
