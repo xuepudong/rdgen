@@ -56,7 +56,7 @@ def generator_view(request):
             elif direction == 'outgoing':
                 appname = "小锐云桥(工程师端)"
             else:  # both
-                appname = "忆远远程控制"
+                appname = "小锐云桥(工程师端)"
             compname = form.cleaned_data['compname']
             if not compname:
                 compname = "Beijing Yiyuan Information Technology Co., Ltd."
